@@ -866,7 +866,7 @@ function hitEnemy(e,base,dir,o={}){
     if(o.melee&&Math.abs(P.x-e.x)<60){P.vx=-dir*120;P.hurtT=Math.max(P.hurtT,.12)}
     return false;
   }
-  const crit=P.m.crit>0&&Math.random()<P.m.crit,big=!!o.big||base>=2||crit,dmg=base*(o.raw?P.m.sp:CH.atk*P.m.atk)*(fever>0?1.3:1)*(crit?2:1),kb=o.kb===undefined?140:o.kb;
+  const back=e.face===dir&&e.st!=='hang'&&e.st!=='aim'&&!e.dead,crit=back||P.m.crit>0&&Math.random()<P.m.crit,big=!!o.big||base>=2||crit,dmg=base*(o.raw?P.m.sp:CH.atk*P.m.atk)*(fever>0?1.3:1)*(crit?2:1),kb=o.kb===undefined?140:o.kb;
   e.hp-=dmg;e.flash=.1;
   if(e.boss){
     if(e.st!=='dash'){e.hurt=Math.max(e.hurt,.07);e.vx=dir*kb*.25}
@@ -881,7 +881,7 @@ function hitEnemy(e,base,dir,o={}){
   chain++;chainT=2.4+P.m.chain;chainPop=.2;if(chain>maxChain)maxChain=chain;if(chain>carChain)carChain=chain;
   P.en=Math.min(100,P.en+(o.noEn?.25:.5)*P.m.en*(fever>0?1.5:1));
   if(chain>=P.m.fever&&fever<=0&&!feverLock){fever=5;feverLock=true;flashA=.3;sfx.fever();addText(P.x,P.y-74,'FEVER!','#ffd166',16,1)}
-  if(crit)addText(e.x,e.y-e.h-16,'급소!','#ff7a5c',10,.6);
+  if(back){addText(e.x,e.y-e.h-16,'백어택 크리티컬 x2!','#ffd166',11,.7);ring(e.x,e.y-34,{c:'#ffd166',v:160,life:.25,w:3});shake=Math.max(shake,4)}else if(crit)addText(e.x,e.y-e.h-16,'급소!','#ff7a5c',10,.6);
   shake=Math.max(shake,big?5:2.5);hs=Math.max(hs,big?.075:.04);
   const hy=e.y-Math.min(e.h,50)*.6;
   spark(e.x,hy,dir,big?'#ffd166':'#ffe9a8',big?12:7);ring(e.x-dir*4,hy,{c:big?'#ffd166':'#fff',v:big?170:110,life:.22,w:big?3:2});
