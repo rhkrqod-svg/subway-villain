@@ -2171,21 +2171,21 @@ if(CHAL)setTimeout(showChal,300);
 const PVP_K=3;
 const NET={ws:null,room:'',role:'',id:Math.random().toString(36).slice(2,10),opp:null,oppId:'',ready:false,joined:false,lastRx:0,lastHi:0,sendT:0,hb:null,ref:1,res:null,goT:0,status:''};
 function rid(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
-function roomURL(){return SHARE_URL+'?room='+NET.room+'&h='+encodeURIComponent((myName()||'친구').slice(0,10))}
-function netConnect(room,role){
-  netClose();NET.room=room;NET.role=role;NET.opp=null;NET.oppId='';NET.ready=false;NET.joined=false;NET.res=null;NET.lastRx=performance.now();
+function roomURL(){return SHARE_URL+'?room='+NET.room+'&h='+encodeURIComponent((NET.name||myName()||'친구').slice(0,10))}
+function netConnect(room,role,keep){
+  netClose();NET.leaving=false;NET.room=room;NET.role=role;if(!keep){NET.opp=null;NET.oppId='';NET.ready=false;NET.res=null}NET.joined=false;NET.lastRx=performance.now();
   const ws=new WebSocket(SB_URL.replace('https://','wss://')+'/realtime/v1/websocket?apikey='+encodeURIComponent(SB_KEY)+'&vsn=1.0.0');NET.ws=ws;
   const topic='realtime:svduel-'+room;
   ws.onopen=()=>{ws.send(JSON.stringify({topic,event:'phx_join',payload:{config:{broadcast:{self:false,ack:false},presence:{key:''},postgres_changes:[],private:false}},ref:String(NET.ref++)}));
-    NET.hb=setInterval(()=>{try{ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:String(NET.ref++)}))}catch(e){}},25000)};
+    NET.hb=setInterval(()=>{try{ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:String(NET.ref++)}))}catch(e){}},15000)};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}
     if(m.event==='phx_reply'&&m.topic===topic&&!NET.joined){if(m.payload&&m.payload.status==='ok'){NET.joined=true;pvpStatus();netSend({t:'hi'})}else pvpStatus('서버 연결 실패. 다시 시도해 주세요')}
     else if(m.event==='broadcast'&&m.payload&&m.payload.payload)onNet(m.payload.payload)};
-  ws.onclose=()=>{NET.joined=false;if(MODE==='pvp'&&NET.ws===ws)pvpStatus('연결이 끊겼어요. 나가기 후 다시 들어와 주세요')};
+  ws.onclose=()=>{if(NET.ws!==ws)return;NET.joined=false;if(MODE==='pvp'&&NET.room&&!NET.leaving){pvpStatus('다시 연결하는 중…');setTimeout(()=>{if(MODE==='pvp'&&NET.room&&!NET.leaving&&(!NET.ws||NET.ws===ws))netConnect(NET.room,NET.role,true)},1200)}};
   ws.onerror=()=>pvpStatus('연결 오류가 났어요');
 }
-function netClose(){if(NET.hb)clearInterval(NET.hb);NET.hb=null;if(NET.ws){const w=NET.ws;NET.ws=null;try{w.close()}catch(e){}}NET.joined=false}
-function netSend(p){if(!NET.ws||!NET.joined)return;p.id=NET.id;if(p.t==='hi'){p.n=(myName()||'익명').slice(0,10);p.c=NET.ready?CH.id:null;p.r=NET.ready;p.role=NET.role}
+function netClose(){if(NET.hb)clearInterval(NET.hb);NET.hb=null;if(NET.ws){const w=NET.ws;NET.ws=null;try{w.onclose=null;w.close()}catch(e){}}NET.joined=false}
+function netSend(p){if(!NET.ws||!NET.joined)return;p.id=NET.id;if(p.t==='hi'){p.n=(NET.name||myName()||'익명').slice(0,10);p.c=NET.ready?CH.id:null;p.r=NET.ready;p.role=NET.role}
   try{NET.ws.send(JSON.stringify({topic:'realtime:svduel-'+NET.room,event:'broadcast',payload:{type:'broadcast',event:'m',payload:p},ref:String(NET.ref++)}))}catch(e){}}
 function onNet(p){
   if(!p||p.id===NET.id)return;
@@ -2207,11 +2207,11 @@ function onNet(p){
 }
 /* ---- lobby / flow ---- */
 function pvpCreate(){
-  const n=readName('pvp-name');MODE='pvp';RIVAL=null;TARGET=null;DUEL=null;hideDuelBox&&hideDuelBox();hideChal&&hideChal();
+  const n=readName('pvp-name');NET.name=n||myName();MODE='pvp';RIVAL=null;TARGET=null;DUEL=null;hideDuelBox&&hideDuelBox();hideChal&&hideChal();
   netConnect(rid(),'host');showPvpPanel();audio();toSelect();
 }
-function pvpJoin(room){MODE='pvp';RIVAL=null;TARGET=null;netConnect(room,'guest');showPvpPanel();audio();toSelect()}
-function pvpLeave(){netSend({t:'bye'});netClose();MODE='run';NET.room='';const p=document.getElementById('pvp');if(p)p.hidden=true;audio();toSelect()}
+function pvpJoin(room){NET.name=myName();MODE='pvp';RIVAL=null;TARGET=null;netConnect(room,'guest');showPvpPanel();audio();toSelect()}
+function pvpLeave(){netSend({t:'bye'});NET.leaving=true;netClose();MODE='run';NET.room='';const p=document.getElementById('pvp');if(p)p.hidden=true;audio();toSelect()}
 function pvpPick(){NET.ready=true;state='lobby';stT=0;netSend({t:'hi'});pvpStatus()}
 function pvpBegin(){
   if(typeof showRank==='function')showRank(false);
@@ -2275,7 +2275,7 @@ function pvpHurt(p){
 }
 function pvpOver(r){
   if(state==='over'&&NET.res)return;
-  NET.res=r;NET.ready=false;state='over';stT=0;bgmOn=false;
+  NET.res=r;NET.ready=false;if(NET.opp)NET.opp.ready=false;state='over';stT=0;bgmOn=false;
   if(r==='win'){sfx.win();flashA=.6;const e=enemies.find(q=>q.type==='peer');if(e){e.hp=0}}else if(r==='lose')sfx.over();
   showPvpPanel();pvpStatus();
 }
@@ -2299,7 +2299,7 @@ function pvpUpdate(raw){
     NET.sendT-=raw;if(NET.sendT<=0){NET.sendT=1/15;sendSnap()}
     if(P.castT>.7&&!NET.fxSent){NET.fxSent=true;netSend({t:'fx',k:CH.id,f:P.face})}else if(P.castT<=0&&P.spinT<=0)NET.fxSent=false;
     if(P.spinT>.9&&!NET.fxSent){NET.fxSent=true;netSend({t:'fx',k:CH.id,f:P.face})}
-    if(now-NET.lastRx>7000)pvpOver('dc');
+    if(now-NET.lastRx>12000)pvpOver('dc');
   }
   return false;
 }
@@ -2319,7 +2319,7 @@ function drawLobby(){
   dim(.8);
   otxt('⚡ 실시간 1:1 결투',W/2,30,`18px ${DISP}`,'#f3d27a','center',4);
   const me=CH,op=NET.opp&&NET.opp.c?CHARS.find(c=>c.id===NET.opp.c):null;
-  portrait(me.id,70,58,96,me.frame);txt((myName()||'나').slice(0,10),118,172,`12px ${DISP}`,'#ffffff','center');txt(me.name,118,186,`bold 8px ${BODY}`,LINE7HI,'center');
+  portrait(me.id,70,58,96,me.frame);txt((NET.name||myName()||'나').slice(0,10),118,172,`12px ${DISP}`,'#ffffff','center');txt(me.name,118,186,`bold 8px ${BODY}`,LINE7HI,'center');
   otxt('VS',W/2,122,`30px ${DISP}`,'#ff7a5c','center',5);
   if(op){portrait(op.id,W-166,58,96,op.frame);txt(NET.opp.n,W-118,172,`12px ${DISP}`,'#ffffff','center');txt(op.name,W-118,186,`bold 8px ${BODY}`,LINE7HI,'center')}
   else{ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(W-166,58,96,96);txt('?',W-118,120,`40px ${DISP}`,'#6f7d74','center');txt(NET.opp?NET.opp.n+' · 고르는 중':'친구 기다리는 중',W-118,178,`bold 8px ${BODY}`,'#9fb3a6','center')}
@@ -2351,13 +2351,14 @@ function pvpStatus(force){
 document.addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('#pvp-new,#pvp-invite,#pvp-again,#pvp-change,#pvp-leave,#pvp-join');if(!b)return;e.preventDefault();
   if(b.id==='pvp-new')pvpCreate();
-  else if(b.id==='pvp-invite'){readName('pvp-name2');shareText(`⚡ ${myName()||'친구'}의 지하철빌런특공대 실시간 결투 신청!`+String.fromCharCode(10)+'링크 누르고 캐릭터 고르면 바로 1:1 대결 (설치·로그인 없음) 👇',roomURL(),b)}
+  else if(b.id==='pvp-invite'){const nn=readName('pvp-name2');if(nn){NET.name=nn;netSend({t:'hi'})}shareText(`⚡ ${NET.name||myName()||'친구'}의 지하철빌런특공대 실시간 결투 신청!`+String.fromCharCode(10)+'링크 누르고 캐릭터 고르면 바로 1:1 대결 (설치·로그인 없음) 👇',roomURL(),b)}
   else if(b.id==='pvp-again'){NET.res=null;NET.ready=true;state='lobby';stT=0;netSend({t:'hi'});pvpStatus()}
   else if(b.id==='pvp-change'){NET.ready=false;NET.res=null;netSend({t:'hi'});toSelect();pvpStatus()}
   else if(b.id==='pvp-leave')pvpLeave();
   else if(b.id==='pvp-join'){const r=new URLSearchParams(location.search).get('room');readName('inv-name');document.getElementById('inv').hidden=true;pvpJoin(r)}
 });
-addEventListener('pagehide',()=>{if(NET.room)netSend({t:'bye'})});
+addEventListener('pagehide',e=>{if(NET.room&&!e.persisted)netSend({t:'bye'})});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&MODE==='pvp'&&NET.room&&!NET.leaving&&(!NET.ws||NET.ws.readyState>1))netConnect(NET.room,NET.role,true);if(document.visibilityState==='visible')NET.lastRx=Math.max(NET.lastRx,performance.now()-4000)});
 (()=>{const q=new URLSearchParams(location.search),r=q.get('room');if(!r||!/^[A-Z0-9]{4,8}$/.test(r))return;
   const h=(q.get('h')||'친구').slice(0,10);setTimeout(()=>{const d=document.getElementById('inv');if(!d)return;document.getElementById('inv-title').textContent=`${h}님이 실시간 결투를 신청했어요!`;const nm=document.getElementById('inv-name');if(nm&&!nm.value)nm.value=myName();d.hidden=false;hideChal&&hideChal()},300)})();
 
