@@ -259,11 +259,7 @@ async function shareGame(withScore,btn){
   const text=withScore&&lastRun&&lastRun.score?bragText():'7호선 빌런 소탕 액션 지하철빌런특공대 🚇'+String.fromCharCode(10)+'설치·로그인 없이 바로 플레이!';
   if(withScore&&lastRun&&lastRun.score){readName('brag-name');return shareText(text,chalURL(lastRun.score),btn)}
   if(!withScore)return shareText('🥊 지하철빌런특공대 도전장!'+String.fromCharCode(10)+'내 '+jo(CH.name,'이랑','랑')+' 1:1 결투 ㄱ? 점수 대결도 가능 (설치·로그인 없음)',chalURL(best),btn);
-  try{if(navigator.share){await navigator.share({title:'지하철빌런특공대',text,url:SHARE_URL});return}}catch(e){if(e&&e.name==='AbortError')return}
-  const all=text+String.fromCharCode(10)+SHARE_URL;let ok=false;
-  try{await navigator.clipboard.writeText(all);ok=true}catch(e){}
-  if(!ok){try{const ta=document.createElement('textarea');ta.value=all;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove()}catch(e){}}
-  if(btn){const o=btn.textContent;btn.textContent=ok?'복사됨! 카톡에 붙여넣기':'복사 실패';setTimeout(()=>btn.textContent=o,2000)}
+  return shareText(text,SHARE_URL,btn);
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#sh,#rank-share,#brag-go,#brag-new');if(!b)return;e.preventDefault();
   if(b.id==='brag-new'){bragIdx=(bragIdx+1)%BRAG.length;updateBrag();return}
@@ -311,7 +307,7 @@ const BOSS={
   flora:{name:'꽃치마아저씨',sub:'꽃무늬 핸드백을 던지고 휘두른다',hp:110,w:28,h:70,spd:46,car:7},
   umb:{name:'의왕할아버지',sub:'노란 우산을 펼치면 앞쪽 공격은 막힌다',hp:120,w:28,h:70,spd:44,car:8},
   cult:{name:'콘스탄틴',sub:'확성기 설교를 퍼붓고 신도를 불러낸다',hp:140,w:28,h:70,spd:40,car:9},
-  queen:{name:'댄싱퀸',sub:'춤을 멈추지 않는 마지막 칸의 주인공',hp:170,w:28,h:76,spd:48,car:10}
+  queen:{name:'댄싱퀸',sub:'춤을 멈추지 않는 무대 위의 빌런',hp:170,w:28,h:76,spd:48,car:10}
 };
 const NAMES={phone:'폰좀비',bag:'백팩 돌진러',cup:'커피 투척러',drunk:'만취객',rider:'킥보드 빌런',shout:'통화 빌런',hiker:'등산 스틱 빌런',vendor:'잡상인',spray:'향수 빌런',muscle:'헬창'};for(const k in BOSS)NAMES[k]=BOSS[k].name;
 /* attack table: 0-2 ground combo, 3 air slash, 4 dash launcher */
@@ -778,7 +774,7 @@ try{best=+localStorage.getItem('danso-best')||0;const c=localStorage.getItem('da
 let P=null,enemies=[],shots=[],items=[],parts=[],texts=[],rings=[],pillars=[],ghosts=[],timers=[],cuts=[];
 let camX=0,shake=0,hs=0,slow=0,flashA=0,doorOpen=false,banner=null,intro=null,cutin=null,transT=0,swapped=false;
 let chain=0,chainT=0,chainPop=0,maxChain=0,runTime=0,sweep=-1,sweepT=2;
-let fever=0,feverLock=false,carTime=0,carDmg=0,carChain=0,carN=0,grades=[],gradeFx=null,picks=[],pickSel=1,curBoss=null;
+let bossAt={},bossPow=1,wave=0,fever=0,feverLock=false,carTime=0,carDmg=0,carChain=0,carN=0,grades=[],gradeFx=null,picks=[],pickSel=1,curBoss=null;
 const stn=()=>car>10?`무한 ${car-10}`:STATIONS[car-1];
 function saveBest(){if(score>best){best=score;try{localStorage.setItem('danso-best',best)}catch(e){}}}
 function mkPlayer(){return{x:46,y:FLOOR,vx:0,vy:0,face:1,hp:CH.hp,max:CH.hp,hpLag:CH.hp,en:40,onG:true,
@@ -787,7 +783,7 @@ function mkPlayer(){return{x:46,y:FLOOR,vx:0,vy:0,face:1,hp:CH.hp,max:CH.hp,hpLa
   spinT:0,spinTick:0,spinN:0,spinHit:new Set(),castT:0,hitInv:0,rushT:0,plunge:false,dashEnd:0,airN:0,slowT:0,bag:[],hotT:0,
   m:{atk:1,def:1,en:1,reach:1,chain:0,leech:0,parry:0,sp:1,crit:0,dashCd:1,fever:30,ups:[]}}}
 function mk(type,x,elite){
-  const D=BOSS[type]||MOBS[type],boss=!!BOSS[type],hp=(D.hp+(boss?0:Math.floor((car-1)/2)))*(elite?3.5:1)*(car>10?1+.15*(car-10):1),sp=type==='spider',k=elite?1.2:1;
+  const D=BOSS[type]||MOBS[type],boss=!!BOSS[type],hp=(boss&&MODE==='run'?75+12*(Math.min(car,10)-2):D.hp+(boss?0:Math.floor((car-1)/2)))*(elite?3.5:1)*(car>10?1+.15*(car-10):1),sp=type==='spider',k=elite?1.2:1;
   return{type,boss,elite:!!elite,tough:!!elite||type==='muscle',x,y:sp?HANGY:FLOOR,vx:0,vy:0,hp,max:hp,hpLag:hp,w:D.w*k,h:D.h*k,spd:D.spd,face:-1,awake:false,hurt:0,flash:0,cd:1,st:sp?'hang':'walk',stT:0,
     dashDir:-1,dashLen:.42,dead:false,deadT:0,throwT:0,walk:0,mvf:false,seed:Math.random()*10,combo:0,air:false,downT:0,slashes:0,hangHits:0,scd:rnd(5,8),gcd:rnd(2,4),shield:0,lvx:0,slam:false};
 }
@@ -795,23 +791,26 @@ function startWith(i){sel=i;CH=CHARS[i];if(MODE==='pvp'&&typeof pvpPick==='funct
 function toSelect(){if(typeof showRank==='function')showRank(false);state='select';stT=0;bgmOn=true;bgmMode=0}
 function newGame(){
   if(typeof showRank==='function')showRank(false);
-  car=1;score=0;chain=0;maxChain=0;runTime=0;grades=[];fever=0;feverLock=false;slow=0;hs=0;cutin=null;P=mkPlayer();startCar();state='play';stT=0;bgmOn=true;bgmMode=1;
+  rollBosses();car=1;score=0;chain=0;maxChain=0;runTime=0;grades=[];fever=0;feverLock=false;slow=0;hs=0;cutin=null;P=mkPlayer();startCar();state='play';stT=0;bgmOn=true;bgmMode=1;
 }
+function rollBosses(){const ks=Object.keys(BOSS).sort(()=>Math.random()-.5);bossAt={};[2,3,4,6,7,8,9,10].forEach((c,i)=>bossAt[c]=ks[i])} // random boss order every run
 function startCar(){
   Object.assign(P,{x:46,y:FLOOR,vx:0,vy:0,atkT:0,onG:true,hurtT:0,dashT:0,spinT:0,castT:0,guard:false,rushT:0,plunge:false,dashEnd:0,slowT:0});
   if(car>1)P.hp=Math.min(P.max,P.hp+8);
   shots=[];items=[];parts=[];texts=[];rings=[];pillars=[];timers=[];ghosts=[];cuts=[];doorOpen=false;camX=0;
-  const bossKey=car<=10?Object.keys(BOSS).find(k=>BOSS[k].car===car):car%2===0?pick(Object.keys(BOSS)):null,list=[];
-  curBoss=bossKey||null;carTime=0;carDmg=0;carChain=0;gradeFx=null;
+  if(!bossAt[2])rollBosses();
+  const bossKey=car<=10?bossAt[car]||null:car%2===0?pick(Object.keys(BOSS)):null,list=[];
+  curBoss=bossKey||null;wave=0;bossPow=bossKey?.9+.03*(Math.min(car,10)-2)+(car>10?.03*(car-10):0):1;carTime=0;carDmg=0;carChain=0;gradeFx=null;
   const pool=['phone'];if(car>=2)pool.push('bag');if(car>=3)pool.push('cup');if(car>=3)pool.push('hiker');if(car>=4)pool.push('drunk');if(car>=5)pool.push('shout','vendor');if(car>=6)pool.push('rider','spray');
-  const n=bossKey?Math.min(4,1+Math.ceil(car/3)):Math.min(10,3+Math.ceil(car*.7)),span=bossKey?CAR_LEN-420:CAR_LEN-280;
+  const n=bossKey?Math.min(7,2+Math.ceil(car/2)):Math.min(15,5+car),span=bossKey?CAR_LEN-420:CAR_LEN-280;
   for(let i=0;i<n;i++)list.push([pick(pool),200+(i+.5)*span/n+rnd(-12,12)]);
   if(bossKey)list.push([bossKey,CAR_LEN-110]);
   enemies=list.map(([ty,x],i)=>mk(ty,x,!BOSS[ty]&&(car>=6&&i===0||car>10&&i===1)));
+  for(const e of enemies)if(e.boss)e.spd*=Math.sqrt(bossPow);
   if(car===5||car>10&&car%2===1)enemies.push(mk('muscle',CAR_LEN-90));
   carN=enemies.length;
   const s=stn();bgmMode=bossKey||car===5?2:1;
-  banner={t:3.4,s:car>10?`무한 모드 ${car-10}번째 칸`:`이번 역은 ${s}, ${s}역입니다`,s2:bossKey?`보스 탑승 중 · ${BOSS[bossKey].name}`:car===1?'◀ ▶ 두 번 누르면 대시 · 맞기 직전에 막으면 패링':car===5?'중간 보스 탑승 중 · 헬창':`${car}번째 칸 · 승객 ${enemies.length}명 난동 중`};
+  banner={t:3.4,s:car>10?`무한 모드 ${car-10}번째 칸`:`이번 역은 ${s}, ${s}역입니다`,s2:bossKey?`보스 탑승 중 · ${BOSS[bossKey].name} · 위협 ${'★'.repeat(Math.min(5,Math.ceil((Math.min(car,10)-1)/2)))}`:car===1?'◀ ▶ 두 번 누르면 대시 · 맞기 직전에 막으면 패링':car===5?'중간 보스 탑승 중 · 헬창':`${car}번째 칸 · 승객 ${enemies.length}명 난동 중`};
 }
 function gradeCar(){
   const par=24+carN*4+(curBoss?45:0)+(car===5?25:0);
@@ -834,6 +833,7 @@ function tapStart(){
   if(state==='intro'&&intro&&intro.t>.7){endIntro();return}
   if(state==='title'){state='select';stT=0;return}
   if((state==='over'||state==='win')&&stT>.8&&MODE!=='pvp')toSelect();
+  else if(state==='over'&&MODE==='pvp'&&stT>1.2&&typeof pvpRematch==='function')pvpRematch();
 }
 
 /* ===== fx ===== */
@@ -900,6 +900,7 @@ function kill(e,dir){
   else{if(e.tough||Math.random()<.22)items.push({x:e.x,y:e.y-20,vy:-200,t:0,k:Math.random()<.4?'milk':pick(ITEM_KEYS)});if(!enemies.some(q=>!q.dead))slow=.5}
 }
 function hurtP(d,dir,ub){
+  if(bossPow!==1&&MODE==='run'&&enemies.some(e=>e.boss&&!e.dead))d=Math.max(1,Math.round(d*bossPow));
   if(ub?P.hitInv>0:P.inv>0)return'none';
   if(ub&&P.guard)addText(P.x,P.y-64,'방어 불가!','#ff8a75',10,.8);
   if(!ub&&P.guard&&P.face===-dir){
@@ -1350,6 +1351,12 @@ function update(raw){
   enemies=enemies.filter(e=>!(e.dead&&e.deadT<=0));
   updShots(dt);if(state!=='play')return;
   updItems(dt);
+  if(MODE==='run'&&!doorOpen&&wave===0&&carTime>2&&enemies.filter(e=>!e.boss&&!e.dead).length<=(curBoss?1:2)){ // reinforcements board mid-car
+    wave=1;const pool=['phone','bag'];if(car>=3)pool.push('cup','hiker');if(car>=4)pool.push('drunk');if(car>=5)pool.push('shout','vendor');if(car>=6)pool.push('rider','spray');
+    const k=curBoss?Math.min(4,1+Math.ceil(car/4)):Math.min(8,3+Math.ceil(car/2));
+    for(let i=0;i<k;i++){const side=i%2?-1:1,x=clamp(side>0?camX+VW+20+i*14:camX-20-i*14,40,CAR_LEN-60);const e=mk(pick(pool),x,car>=7&&i===0);e.awake=true;e.face=P.x<x?-1:1;enemies.push(e)}
+    carN+=k;banner={t:2,s:'승객이 더 탔습니다!',s2:`빌런 ${k}명 추가 탑승`};sfx.boss&&sfx.boss();shake=4;
+  }
   if(!doorOpen&&enemies.length===0&&MODE==='run'){
     gradeCar();
     doorOpen=true;sfx.chime();
@@ -2147,7 +2154,15 @@ function onDuelEnd(d){
   const nm=document.getElementById('duel-name');if(nm&&!nm.value)nm.value=myName();
   b.hidden=false;setTimeout(()=>{try{b.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}},60);
 }
+/* KakaoTalk direct share (needs a Kakao Developers JavaScript key with this site's domain registered) */
+const KAKAO_KEY='';
+if(KAKAO_KEY&&!KAKAO_KEY.startsWith('__')){const sc=document.createElement('script');sc.src='https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js';sc.crossOrigin='anonymous';sc.onload=()=>{try{if(!Kakao.isInitialized())Kakao.init(KAKAO_KEY)}catch(e){}};document.head.appendChild(sc)}
+function kakaoShare(text,url){
+  try{if(!window.Kakao||!Kakao.Share)return false;if(!Kakao.isInitialized())Kakao.init(KAKAO_KEY);
+    Kakao.Share.sendDefault({objectType:'text',text:text.slice(0,190),link:{mobileWebUrl:url,webUrl:url},buttonTitle:'바로 플레이'});return true}catch(e){return false}
+}
 async function shareText(text,url,btn){
+  if(KAKAO_KEY&&!KAKAO_KEY.startsWith('__')&&kakaoShare(text,url))return;
   try{if(navigator.share){await navigator.share({title:'지하철빌런특공대',text,url});return}}catch(e){if(e&&e.name==='AbortError')return}
   const all=text+String.fromCharCode(10)+url;let ok=false;
   try{await navigator.clipboard.writeText(all);ok=true}catch(e){}
@@ -2167,61 +2182,109 @@ document.addEventListener('click',e=>{
 if(CHAL)setTimeout(showChal,300);
 
 
-/* ===== realtime 1:1 battle over Supabase Realtime broadcast (raw Phoenix websocket) ===== */
+/* ===== realtime 1:1 battle over Supabase Realtime broadcast (raw Phoenix websocket) =====
+   Robustness rules:
+   - both sides re-announce their full status ('hi') every second; nothing depends on a single message
+   - rounds are numbered; anything from another round is ignored
+   - the side with the smaller id ("leader") starts a round and re-sends 'go' until the other side is in it
+   - a KO is re-sent and also inferred from the loser's own snapshots
+   - an opponent that went silent can be replaced by a new connection (page reload, second browser) */
 const PVP_K=3;
-const NET={ws:null,room:'',role:'',id:Math.random().toString(36).slice(2,10),opp:null,oppId:'',ready:false,joined:false,lastRx:0,lastHi:0,sendT:0,hb:null,ref:1,res:null,goT:0,status:''};
+const NET={ws:null,room:'',id:Math.random().toString(36).slice(2,10),opp:null,ready:false,joined:false,ref:1,res:null,goT:0,round:0,lastGo:0,sendT:0,hb:null,tick:null,name:'',leaving:false,koSent:0,fxSent:false,weak:false};
 function rid(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
 function roomURL(){return SHARE_URL+'?room='+NET.room+'&h='+encodeURIComponent((NET.name||myName()||'친구').slice(0,10))}
-function netConnect(room,role,keep){
-  netClose();NET.leaving=false;NET.room=room;NET.role=role;if(!keep){NET.opp=null;NET.oppId='';NET.ready=false;NET.res=null}NET.joined=false;NET.lastRx=performance.now();
+function isLeader(){return !!NET.opp&&NET.id<NET.opp.id}
+function oppFresh(ms){return !!NET.opp&&performance.now()-NET.opp.last<ms}
+function phase(){return state==='select'?'select':state==='lobby'?'lobby':state==='count'?'count':state==='play'?'play':state==='over'?'over':'other'}
+function netConnect(room,keep){
+  netClose();NET.leaving=false;NET.room=room;if(!keep){NET.opp=null;NET.ready=false;NET.res=null;NET.round=0}NET.joined=false;
+  try{sessionStorage.setItem('svroom',room)}catch(e){}
   const ws=new WebSocket(SB_URL.replace('https://','wss://')+'/realtime/v1/websocket?apikey='+encodeURIComponent(SB_KEY)+'&vsn=1.0.0');NET.ws=ws;
   const topic='realtime:svduel-'+room;
   ws.onopen=()=>{ws.send(JSON.stringify({topic,event:'phx_join',payload:{config:{broadcast:{self:false,ack:false},presence:{key:''},postgres_changes:[],private:false}},ref:String(NET.ref++)}));
     NET.hb=setInterval(()=>{try{ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:String(NET.ref++)}))}catch(e){}},15000)};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}
-    if(m.event==='phx_reply'&&m.topic===topic&&!NET.joined){if(m.payload&&m.payload.status==='ok'){NET.joined=true;pvpStatus();netSend({t:'hi'})}else pvpStatus('서버 연결 실패. 다시 시도해 주세요')}
+    if(m.event==='phx_reply'&&m.topic===topic&&!NET.joined){if(m.payload&&m.payload.status==='ok'){NET.joined=true;sendHi();pvpStatus()}else pvpStatus('서버 연결 실패 · 잠시 후 자동으로 다시 시도해요')}
     else if(m.event==='broadcast'&&m.payload&&m.payload.payload)onNet(m.payload.payload)};
-  ws.onclose=()=>{if(NET.ws!==ws)return;NET.joined=false;if(MODE==='pvp'&&NET.room&&!NET.leaving){pvpStatus('다시 연결하는 중…');setTimeout(()=>{if(MODE==='pvp'&&NET.room&&!NET.leaving&&(!NET.ws||NET.ws===ws))netConnect(NET.room,NET.role,true)},1200)}};
-  ws.onerror=()=>pvpStatus('연결 오류가 났어요');
+  ws.onclose=()=>{if(NET.ws!==ws)return;NET.joined=false;
+    if(MODE==='pvp'&&NET.room&&!NET.leaving){pvpStatus('다시 연결하는 중…');setTimeout(()=>{if(MODE==='pvp'&&NET.room&&!NET.leaving&&NET.ws===ws)netConnect(NET.room,true)},1000)}};
+  ws.onerror=()=>{};
+  if(!NET.tick)NET.tick=setInterval(netTick,1000);
 }
 function netClose(){if(NET.hb)clearInterval(NET.hb);NET.hb=null;if(NET.ws){const w=NET.ws;NET.ws=null;try{w.onclose=null;w.close()}catch(e){}}NET.joined=false}
-function netSend(p){if(!NET.ws||!NET.joined)return;p.id=NET.id;if(p.t==='hi'){p.n=(NET.name||myName()||'익명').slice(0,10);p.c=NET.ready?CH.id:null;p.r=NET.ready;p.role=NET.role}
+function netSend(p){if(!NET.ws||!NET.joined||NET.ws.readyState!==1)return;p.id=NET.id;
   try{NET.ws.send(JSON.stringify({topic:'realtime:svduel-'+NET.room,event:'broadcast',payload:{type:'broadcast',event:'m',payload:p},ref:String(NET.ref++)}))}catch(e){}}
+function sendHi(){netSend({t:'hi',n:(NET.name||myName()||'익명').slice(0,10),c:NET.ready?CH.id:null,r:NET.ready?1:0,ph:phase(),rd:NET.round,res:NET.res||''})}
+/* once a second, independent of the animation loop (keeps working when the tab is throttled) */
+function netTick(){
+  if(MODE!=='pvp'||!NET.room)return;
+  if(!NET.ws||NET.ws.readyState>1){if(!NET.leaving)netConnect(NET.room,true);return}
+  if(state!=='play')sendHi();else if(Math.random()<.34)sendHi();
+  tryStart();
+  if(NET.koSent>0&&state==='over'&&NET.res==='lose'){NET.koSent--;netSend({t:'ko',rd:NET.round})}
+  pvpStatus();
+}
+function acceptOpp(p){
+  const now=performance.now();
+  if(!NET.opp){NET.opp={id:p.id,n:'친구',c:null,r:0,ph:'',rd:0,res:'',last:now};sfx.pick&&sfx.pick();sendHi();return true}
+  if(NET.opp.id===p.id){NET.opp.last=now;return true}
+  /* a different connection: take it over only if the old one has gone quiet */
+  if(now-NET.opp.last>5000&&p.t==='hi'){NET.opp={id:p.id,n:'친구',c:null,r:0,ph:'',rd:0,res:'',last:now};if(state==='play'||state==='count')pvpOver('dc');sendHi();return true}
+  return false;
+}
 function onNet(p){
-  if(!p||p.id===NET.id)return;
-  if(NET.oppId&&p.id!==NET.oppId)return;
-  NET.lastRx=performance.now();
-  if(p.t==='hi'){
-    const first=!NET.opp;NET.oppId=p.id;NET.opp=Object.assign(NET.opp||{},{n:String(p.n||'친구').slice(0,10),c:p.c,ready:!!p.r});
-    if(first){netSend({t:'hi'});sfx.pick&&sfx.pick()}
-    if(state==='play'||state==='count'){} // ignore mid-fight hellos
-    pvpStatus();return;
+  if(!p||!p.id||p.id===NET.id)return;
+  if(p.t==='bye'){if(NET.opp&&NET.opp.id===p.id){NET.opp=null;if(state==='play'||state==='count')pvpOver('dc');pvpStatus('상대가 방을 나갔어요 · 다른 친구를 초대할 수 있어요')}return}
+  if(!acceptOpp(p))return;
+  const o=NET.opp;
+  if(p.t==='hi'){o.n=String(p.n||'친구').slice(0,10);o.c=p.c||null;o.r=p.r?1:0;o.ph=p.ph||'';o.rd=p.rd|0;o.res=p.res||'';tryStart();pvpStatus();return}
+  if(p.t==='go'){
+    if((p.rd|0)>NET.round&&NET.ready&&(state==='lobby'||state==='over'||state==='select')){pvpBegin(p.rd|0,!!p.left);NET.goT=clamp(3-(+p.el||0),.6,3)}
+    return;
   }
-  if(p.t==='go'){if(state==='lobby'||state==='over')pvpBegin();return}
-  if(p.t==='s'){const e=enemies.find(q=>q.type==='peer');if(e)peerSnap(e,p);return}
+  if((p.rd|0)!==NET.round)return; // everything below belongs to a specific round
+  if(p.t==='s'){o.ph=state==='play'||state==='count'?'play':o.ph;const e=enemies.find(q=>q.type==='peer');if(e)peerSnap(e,p);if(state==='play'&&p.hp<=0)pvpOver('win');return}
   if(p.t==='hit'){if(state==='play')pvpHurt(p);return}
   if(p.t==='res'){if(state==='play'){if(p.r==='parry'){P.hurtT=.6;P.vx=-p.dir*150;P.atkT=0;P.rushT=0;addText(P.x,P.y-64,'패링 당함!','#fff6c8',11,.9);shake=5}else if(p.r==='block'){const e=enemies.find(q=>q.type==='peer');if(e)addText(e.x,e.y-64,'막힘!','#a0cdff',10,.5);sfx.deflect()}}return}
-  if(p.t==='fx'){const e=enemies.find(q=>q.type==='peer');if(e)peerFx(e,p);return}
-  if(p.t==='ko'){if(state==='play')pvpOver('win');return}
-  if(p.t==='bye'){NET.opp=null;NET.oppId='';pvpStatus('상대가 나갔어요');if(state==='play'||state==='count')pvpOver('dc');return}
+  if(p.t==='fx'){const e=enemies.find(q=>q.type==='peer');if(e&&state==='play')peerFx(e,p);return}
+  if(p.t==='ko'){if(state==='play'||state==='count')pvpOver('win');return}
+}
+/* leader starts the round once both sides are ready in the lobby, and repeats 'go' until the other side joins it */
+function tryStart(){
+  if(MODE!=='pvp'||!NET.opp||!isLeader())return;
+  const o=NET.opp,now=performance.now();
+  if(state==='lobby'&&NET.ready&&o.r&&o.c&&(o.ph==='lobby'||o.ph==='over'&&o.r)&&oppFresh(3500)){
+    const rd=Math.max(NET.round,o.rd)+1;pvpBegin(rd,true);NET.lastGo=now;netSend({t:'go',rd,left:false});return;
+  }
+  if((state==='count'||state==='play')&&o.rd<NET.round){
+    if(now-NET.beginT>6000&&oppFresh(2500)){state='lobby';stT=0;enemies=[];sendHi();pvpStatus('상대가 시작 신호를 못 받아서 다시 맞추는 중…');return} // other side never joined: retry cleanly
+    if(now-NET.lastGo>450){NET.lastGo=now;netSend({t:'go',rd:NET.round,left:false,el:Math.round((now-NET.beginT)/100)/10})}
+  }
 }
 /* ---- lobby / flow ---- */
 function pvpCreate(){
   const n=readName('pvp-name');NET.name=n||myName();MODE='pvp';RIVAL=null;TARGET=null;DUEL=null;hideDuelBox&&hideDuelBox();hideChal&&hideChal();
-  netConnect(rid(),'host');showPvpPanel();audio();toSelect();
+  const room=rid();netConnect(room,false);try{history.replaceState(null,'',location.pathname+'?room='+room)}catch(e){}
+  showPvpPanel();audio();toSelect();
 }
-function pvpJoin(room){NET.name=myName();MODE='pvp';RIVAL=null;TARGET=null;netConnect(room,'guest');showPvpPanel();audio();toSelect()}
-function pvpLeave(){netSend({t:'bye'});NET.leaving=true;netClose();MODE='run';NET.room='';const p=document.getElementById('pvp');if(p)p.hidden=true;audio();toSelect()}
-function pvpPick(){NET.ready=true;state='lobby';stT=0;netSend({t:'hi'});pvpStatus()}
-function pvpBegin(){
+function pvpJoin(room){NET.name=myName();MODE='pvp';RIVAL=null;TARGET=null;DUEL=null;netConnect(room,false);showPvpPanel();audio();toSelect()}
+function pvpLeave(){netSend({t:'bye'});NET.leaving=true;netClose();if(NET.tick){clearInterval(NET.tick);NET.tick=null}
+  try{sessionStorage.removeItem('svroom');history.replaceState(null,'',location.pathname)}catch(e){}
+  MODE='run';NET.room='';NET.opp=null;NET.ready=false;NET.res=null;const p=document.getElementById('pvp');if(p)p.hidden=true;audio();toSelect()}
+function pvpPick(){NET.ready=true;NET.res=null;state='lobby';stT=0;sendHi();tryStart();pvpStatus()}
+function pvpRematch(){if(MODE!=='pvp'||state!=='over')return;NET.res=null;NET.ready=true;state='lobby';stT=0;sendHi();tryStart();pvpStatus()}
+function pvpBegin(rd,left){
   if(typeof showRank==='function')showRank(false);
-  NET.res=null;car=1;score=0;chain=0;maxChain=0;runTime=0;grades=[];fever=0;feverLock=true;slow=0;hs=0;cutin=null;
+  NET.round=rd;NET.beginT=performance.now();NET.res=null;NET.koSent=0;NET.fxSent=false;NET.weak=false;
+  car=1;score=0;chain=0;maxChain=0;runTime=0;grades=[];fever=0;feverLock=true;slow=0;hs=0;cutin=null;timers.length=0;shots.length=0;
   P=mkPlayer();P.en=20;startCar();doorOpen=false;curBoss=null;
-  const host=NET.role==='host',C=CHARS.find(c=>c.id===(NET.opp&&NET.opp.c))||CHARS[0];
-  P.x=host?170:330;P.face=host?1:-1;camX=clamp(250-VW/2,0,CAR_LEN-VW);
+  const C=CHARS.find(c=>c.id===(NET.opp&&NET.opp.c))||CHARS[0];
+  P.x=left?170:330;P.face=left?1:-1;camX=clamp(250-VW/2,0,CAR_LEN-VW);
   NAMES.peer=(NET.opp&&NET.opp.n)||'상대';
-  enemies=[mkPeer(C,host?330:170)];carN=1;banner=null;
-  state='count';stT=0;NET.goT=3;bgmOn=true;bgmMode=2;NET.lastRx=performance.now();pvpStatus();
+  enemies=[mkPeer(C,left?330:170)];carN=1;banner=null;
+  state='count';stT=0;NET.goT=3;bgmOn=true;bgmMode=2;
+  if(NET.opp)NET.opp.last=performance.now();
+  sendHi();pvpStatus();
 }
 function mkPeer(C,x){
   const mx=C.hp;
@@ -2252,7 +2315,7 @@ function peerFx(e,p){
 function netHit(e,base,dir,o={}){
   if(state!=='play')return false;
   const raw=!!o.raw,d=base*(raw?P.m.sp:CH.atk*P.m.atk)*PVP_K;
-  netSend({t:'hit',d:Math.round(d*10)/10,dir,kb:o.kb===undefined?140:o.kb,up:o.up||0,big:!!(o.big||base>=2),raw});
+  netSend({t:'hit',rd:NET.round,d:Math.round(d*10)/10,dir,kb:o.kb===undefined?140:o.kb,up:o.up||0,big:!!(o.big||base>=2),raw});
   e.flash=.1;const hy=e.y-34;spark(e.x,hy,dir,o.big?'#ffd166':'#ffe9a8',o.big?12:7);ring(e.x-dir*4,hy,{c:'#fff',v:120,life:.22,w:2});sfx.hit(!!o.big);
   shake=Math.max(shake,o.big?5:2.5);hs=Math.max(hs,o.big?.06:.03);
   chain++;chainT=2.4;if(chain>maxChain)maxChain=chain;P.en=Math.min(100,P.en+(raw?.3:1.6));
@@ -2263,49 +2326,44 @@ function pvpHurt(p){
   const dir=p.dir;
   if(P.dashT>0||P.rushT>0||P.spinT>0||P.castT>0&&CH.id==='king'||P.inv>0)return;
   if(P.guard&&P.face===-dir&&!p.raw){
-    if(P.guardT<.18+P.m.parry){P.parryT=.3;P.inv=.3;P.en=Math.min(100,P.en+6);hs=.1;shake=4;flashA=.25;spark(P.x+P.face*10,P.y-26,P.face,'#fff6c8',12);sfx.parry();netSend({t:'res',r:'parry',dir});return}
-    if(P.en>=CH.guardCost*.5){P.en-=CH.guardCost*.5;P.vx=dir*90;P.hurtT=.1;spark(P.x+P.face*10,P.y-26,P.face,'#a0cdff',6);sfx.block();addText(P.x,P.y-56,'막기','#a0cdff',9,.5);netSend({t:'res',r:'block',dir});return}
+    if(P.guardT<.18+P.m.parry){P.parryT=.3;P.inv=.3;P.en=Math.min(100,P.en+6);hs=.1;shake=4;flashA=.25;spark(P.x+P.face*10,P.y-26,P.face,'#fff6c8',12);sfx.parry();netSend({t:'res',rd:NET.round,r:'parry',dir});return}
+    if(P.en>=CH.guardCost*.5){P.en-=CH.guardCost*.5;P.vx=dir*90;P.hurtT=.1;spark(P.x+P.face*10,P.y-26,P.face,'#a0cdff',6);sfx.block();addText(P.x,P.y-56,'막기','#a0cdff',9,.5);netSend({t:'res',rd:NET.round,r:'block',dir});return}
     addText(P.x,P.y-64,'가드 브레이크','#ff8a75',9,.8);
   }
   const d=Math.max(1,Math.round(p.d*CH.def*P.m.def));
   P.guard=false;P.hp-=d;P.inv=.06;P.hurtT=p.big?.32:.18;P.vx=dir*p.kb*.55;P.atkT=0;P.plunge=false;chain=0;
   if(p.up>0||p.big){P.vy=-Math.max(160,(p.up||200)*.6);P.onG=false}
   shake=p.big?7:4;hs=p.big?.05:.02;sfx.hurt();addText(P.x,P.y-56,'-'+d,'#ff8a75',11);spark(P.x,P.y-24,dir,'#ff8a75',6);flashA=Math.max(flashA,.1);
-  if(P.hp<=0){P.hp=0;netSend({t:'ko'});pvpOver('lose')}
+  if(P.hp<=0){P.hp=0;sendSnap();netSend({t:'ko',rd:NET.round});pvpOver('lose');NET.koSent=4}
 }
 function pvpOver(r){
   if(state==='over'&&NET.res)return;
-  NET.res=r;NET.ready=false;if(NET.opp)NET.opp.ready=false;state='over';stT=0;bgmOn=false;
-  if(r==='win'){sfx.win();flashA=.6;const e=enemies.find(q=>q.type==='peer');if(e){e.hp=0}}else if(r==='lose')sfx.over();
-  showPvpPanel();pvpStatus();
+  NET.res=r;NET.ready=false;state='over';stT=0;bgmOn=false;
+  if(r==='win'){sfx.win();flashA=.6;const e=enemies.find(q=>q.type==='peer');if(e)e.hp=0}else if(r==='lose')sfx.over();
+  sendHi();showPvpPanel();pvpStatus();
 }
 function pvpUpdate(raw){
   if(!NET.room)return false;
-  const now=performance.now();
-  if(state==='lobby'||state==='over'){
-    if(now-NET.lastHi>2000){NET.lastHi=now;netSend({t:'hi'})}
-    if(state==='lobby'&&NET.role==='host'&&NET.ready&&NET.opp&&NET.opp.ready&&NET.opp.c){netSend({t:'go'});pvpBegin();return true}
-    if(state==='lobby'){stT+=0;updFx(raw);return true}
-    return false;
-  }
+  if(state==='lobby'){updFx(raw);return true}
   if(state==='count'){
     NET.goT-=raw;NET.sendT-=raw;if(NET.sendT<=0){NET.sendT=1/15;sendSnap()}
     for(const e of enemies)if(e.type==='peer')updPeer(e,raw);
     const tx=clamp(P.x-VW*.42+P.face*10,0,CAR_LEN-VW);camX+=(tx-camX)*Math.min(1,raw*7);
-    if(NET.goT<=0){state='play';banner={t:1.2,s:'FIGHT!',s2:`VS ${NAMES.peer}`};sfx.boss()}
+    if(NET.goT<=0){state='play';banner={t:1.2,s:'FIGHT!',s2:`VS ${NAMES.peer}`};sfx.boss();sendHi()}
     return true;
   }
   if(state==='play'){
     NET.sendT-=raw;if(NET.sendT<=0){NET.sendT=1/15;sendSnap()}
-    if(P.castT>.7&&!NET.fxSent){NET.fxSent=true;netSend({t:'fx',k:CH.id,f:P.face})}else if(P.castT<=0&&P.spinT<=0)NET.fxSent=false;
-    if(P.spinT>.9&&!NET.fxSent){NET.fxSent=true;netSend({t:'fx',k:CH.id,f:P.face})}
-    if(now-NET.lastRx>12000)pvpOver('dc');
+    if((P.castT>.7||P.spinT>.9)&&!NET.fxSent){NET.fxSent=true;netSend({t:'fx',rd:NET.round,k:CH.id,f:P.face})}else if(P.castT<=0&&P.spinT<=0)NET.fxSent=false;
+    const quiet=NET.opp?performance.now()-NET.opp.last:99999;
+    NET.weak=quiet>3000;
+    if(quiet>15000)pvpOver('dc');
   }
   return false;
 }
 function sendSnap(){
   const r2=v=>Math.round((v||0)*100)/100;
-  netSend({t:'s',x:Math.round(P.x*10)/10,y:Math.round(P.y*10)/10,vx:Math.round(P.vx),f:P.face,g:P.onG?1:0,a:r2(P.atkT),c:P.combo,gd:P.guard?1:0,gt:r2(P.guardT),d:r2(P.dashT),sp:r2(P.spinT),r:r2(P.rushT),pl:P.plunge?1:0,ca:r2(P.castT),h:r2(P.hurtT),pa:r2(P.parryT),w:r2(P.walkT),hp:Math.ceil(P.hp),mx:P.max});
+  netSend({t:'s',rd:NET.round,x:Math.round(P.x*10)/10,y:Math.round(P.y*10)/10,vx:Math.round(P.vx),f:P.face,g:P.onG?1:0,a:r2(P.atkT),c:P.combo,gd:P.guard?1:0,gt:r2(P.guardT),d:r2(P.dashT),sp:r2(P.spinT),r:r2(P.rushT),pl:P.plunge?1:0,ca:r2(P.castT),h:r2(P.hurtT),pa:r2(P.parryT),w:r2(P.walkT),hp:Math.ceil(P.hp),mx:P.max});
 }
 /* ---- drawing ---- */
 function drawPeer(e,fx){
@@ -2314,17 +2372,27 @@ function drawPeer(e,fx){
     const pT=TINT;if(e.flash>0)TINT='#ffffff';drawPlayerBody(null,fx);TINT=pT}
   finally{P=sP;CH=sC}
   if(fx){ctx.font=`bold 6px ${BODY}`;ctx.textAlign='center';ctx.lineWidth=2;ctx.strokeStyle='rgba(10,16,13,.9)';const nm=NAMES.peer||'상대';ctx.strokeText(nm,e.x,e.y-68);ctx.fillStyle='#ff9a8a';ctx.fillText(nm,e.x,e.y-68)}
+  if(fx&&NET.weak&&state==='play'){ctx.font=`bold 7px ${BODY}`;ctx.fillStyle='#ffd166';ctx.fillText('신호 약함…',e.x,e.y-78)}
+}
+function lobbyMsg(){
+  const o=NET.opp;
+  if(!NET.joined)return'서버에 연결하는 중…';
+  if(!o)return'아래 [카톡으로 초대 보내기]로 친구를 부르세요';
+  if(!oppFresh(4000))return`${o.n}님 연결 확인 중…`;
+  if(o.ph==='select'||!o.r)return`${o.n}님이 캐릭터를 고르고 있어요`;
+  if(o.ph==='over')return`${o.n}님이 [재대결]을 누르기를 기다리는 중`;
+  return'둘 다 준비 완료! 곧 시작합니다';
 }
 function drawLobby(){
   dim(.8);
   otxt('⚡ 실시간 1:1 결투',W/2,30,`18px ${DISP}`,'#f3d27a','center',4);
-  const me=CH,op=NET.opp&&NET.opp.c?CHARS.find(c=>c.id===NET.opp.c):null;
-  portrait(me.id,70,58,96,me.frame);txt((NET.name||myName()||'나').slice(0,10),118,172,`12px ${DISP}`,'#ffffff','center');txt(me.name,118,186,`bold 8px ${BODY}`,LINE7HI,'center');
+  const me=CH,o=NET.opp,op=o&&o.c?CHARS.find(c=>c.id===o.c):null;
+  portrait(me.id,70,58,96,me.frame);txt((NET.name||myName()||'나').slice(0,10),118,172,`12px ${DISP}`,'#ffffff','center');txt(me.name+' · 준비 완료',118,186,`bold 8px ${BODY}`,LINE7HI,'center');
   otxt('VS',W/2,122,`30px ${DISP}`,'#ff7a5c','center',5);
-  if(op){portrait(op.id,W-166,58,96,op.frame);txt(NET.opp.n,W-118,172,`12px ${DISP}`,'#ffffff','center');txt(op.name,W-118,186,`bold 8px ${BODY}`,LINE7HI,'center')}
-  else{ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(W-166,58,96,96);txt('?',W-118,120,`40px ${DISP}`,'#6f7d74','center');txt(NET.opp?NET.opp.n+' · 고르는 중':'친구 기다리는 중',W-118,178,`bold 8px ${BODY}`,'#9fb3a6','center')}
-  const msg=!NET.joined?'서버에 연결하는 중…':!NET.opp?'아래 [카톡으로 초대 보내기]로 친구를 부르세요':!NET.opp.ready?'친구가 캐릭터를 고르고 있어요':'곧 시작합니다!';
-  if(Math.floor(t*2)%2===0||NET.opp&&NET.opp.ready)center(msg,226,`bold 10px ${BODY}`,'#ffffff');
+  if(op&&o.r){portrait(op.id,W-166,58,96,op.frame);txt(o.n,W-118,172,`12px ${DISP}`,'#ffffff','center');txt(op.name+' · 준비 완료',W-118,186,`bold 8px ${BODY}`,LINE7HI,'center')}
+  else{ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(W-166,58,96,96);txt('?',W-118,120,`40px ${DISP}`,'#6f7d74','center');txt(o?o.n+' · 준비 중':'친구 기다리는 중',W-118,178,`bold 8px ${BODY}`,'#9fb3a6','center')}
+  const msg=lobbyMsg();
+  if(Math.floor(t*2)%2===0||o&&o.r)center(msg,226,`bold 10px ${BODY}`,'#ffffff');
 }
 function drawCount(){
   const n=Math.ceil(NET.goT);dim(.35);
@@ -2337,31 +2405,44 @@ function drawPvpEnd(){
   plate(W/2-120,116,240,46,r==='win'?'#e3b75c':'#ff7a5c');
   txt('남은 체력',W/2-108,134,`bold 8px ${BODY}`,'#9fb3a6');txt(`${Math.max(0,Math.ceil(P.hp))} / ${P.max}`,W/2+108,135,`12px ${DISP}`,'#ffffff','right');
   txt('최대 콤보',W/2-108,152,`bold 8px ${BODY}`,'#9fb3a6');txt(`${maxChain} HIT`,W/2+108,153,`bold 9px ${BODY}`,'#e3b75c','right');
-  center(NET.opp&&NET.opp.ready?'상대가 재대결을 원해요!':'아래 [재대결]을 누르면 바로 다시 붙어요',186,`bold 9px ${BODY}`,LINE7HI);
+  const o=NET.opp;
+  center(o&&o.ph==='lobby'&&o.r?'상대가 재대결을 원해요! 화면을 탭하면 바로 시작':'화면을 탭하거나 [재대결]을 누르면 다시 붙어요',186,`bold 9px ${BODY}`,LINE7HI);
 }
 /* ---- page panel ---- */
-function showPvpPanel(){const p=document.getElementById('pvp');if(!p)return;p.hidden=false;const nm=document.getElementById('pvp-name2');if(nm&&!nm.value)nm.value=myName();pvpStatus();setTimeout(()=>{try{p.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}},60)}
+function showPvpPanel(){const p=document.getElementById('pvp');if(!p)return;p.hidden=false;const nm=document.getElementById('pvp-name2');if(nm&&!nm.value)nm.value=NET.name||myName();pvpStatus();setTimeout(()=>{try{p.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}},60)}
 function pvpStatus(force){
   const el=document.getElementById('pvp-status');if(!el)return;
-  const s=force||(!NET.joined?'서버에 연결하는 중…':state==='over'&&NET.res?(NET.res==='win'?'🏆 이겼어요! 재대결 하려면 [재대결]':NET.res==='lose'?'💀 졌어요… 복수하려면 [재대결]':'상대 연결이 끊겼어요'):!NET.opp?'방 열림 · 친구를 초대하세요 (방 번호 '+NET.room+')':state==='select'?'친구 입장! 내 캐릭터를 고르세요':!NET.opp.ready?`${NET.opp.n}님이 캐릭터를 고르는 중…`:state==='lobby'?'둘 다 준비 완료! 곧 시작':`${NET.opp.n}님과 결투 중`);
-  el.textContent=s;
-  const inv=document.getElementById('pvp-invite');if(inv)inv.hidden=!!NET.opp&&state!=='over';
+  const o=NET.opp;let s=force;
+  if(!s){
+    if(!NET.joined)s='서버에 연결하는 중…';
+    else if(state==='over'&&NET.res)s=(NET.res==='win'?'🏆 이겼어요! ':NET.res==='lose'?'💀 졌어요… ':'상대 연결이 끊겼어요. ')+(o&&o.ph==='lobby'&&o.r?'상대가 재대결을 기다려요 → [재대결]':'[재대결]을 누르면 다시 붙어요');
+    else if(!o)s='방 열림 · 친구를 초대하세요 (방 번호 '+NET.room+')';
+    else if(state==='select')s=`${o.n}님 입장! 내 캐릭터를 고르세요`;
+    else if(state==='lobby')s=lobbyMsg();
+    else if(state==='count'||state==='play')s=`${o.n}님과 결투 중`+(NET.weak?' · 상대 신호 약함':'');
+    else s=`${o.n}님과 연결됨`;
+  }
+  if(el.textContent!==s)el.textContent=s;
+  const inv=document.getElementById('pvp-invite');if(inv)inv.hidden=!!o&&oppFresh(6000);
   const re=document.getElementById('pvp-again');if(re)re.hidden=!(state==='over'&&NET.res);
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('#pvp-new,#pvp-invite,#pvp-again,#pvp-change,#pvp-leave,#pvp-join');if(!b)return;e.preventDefault();
-  if(b.id==='pvp-new')pvpCreate();
-  else if(b.id==='pvp-invite'){const nn=readName('pvp-name2');if(nn){NET.name=nn;netSend({t:'hi'})}shareText(`⚡ ${NET.name||myName()||'친구'}의 지하철빌런특공대 실시간 결투 신청!`+String.fromCharCode(10)+'링크 누르고 캐릭터 고르면 바로 1:1 대결 (설치·로그인 없음) 👇',roomURL(),b)}
-  else if(b.id==='pvp-again'){NET.res=null;NET.ready=true;state='lobby';stT=0;netSend({t:'hi'});pvpStatus()}
-  else if(b.id==='pvp-change'){NET.ready=false;NET.res=null;netSend({t:'hi'});toSelect();pvpStatus()}
+  if(b.id==='pvp-new'){if(MODE==='pvp'&&NET.room){showPvpPanel();return}pvpCreate()}
+  else if(b.id==='pvp-invite'){const nn=readName('pvp-name2');if(nn){NET.name=nn;sendHi()}shareText(`⚡ ${NET.name||myName()||'친구'}의 지하철빌런특공대 실시간 결투 신청!`+String.fromCharCode(10)+'링크 누르고 캐릭터 고르면 바로 1:1 대결 (설치·로그인 없음) 👇',roomURL(),b)}
+  else if(b.id==='pvp-again')pvpRematch();
+  else if(b.id==='pvp-change'){if(state==='count'||state==='play')return;NET.ready=false;NET.res=null;toSelect();sendHi();pvpStatus()}
   else if(b.id==='pvp-leave')pvpLeave();
-  else if(b.id==='pvp-join'){const r=new URLSearchParams(location.search).get('room');readName('inv-name');document.getElementById('inv').hidden=true;pvpJoin(r)}
+  else if(b.id==='pvp-join'){const r=new URLSearchParams(location.search).get('room');const nn=readName('inv-name');document.getElementById('inv').hidden=true;pvpJoin(r);if(nn)NET.name=nn}
 });
 addEventListener('pagehide',e=>{if(NET.room&&!e.persisted)netSend({t:'bye'})});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&MODE==='pvp'&&NET.room&&!NET.leaving&&(!NET.ws||NET.ws.readyState>1))netConnect(NET.room,NET.role,true);if(document.visibilityState==='visible')NET.lastRx=Math.max(NET.lastRx,performance.now()-4000)});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible'||MODE!=='pvp'||!NET.room||NET.leaving)return;
+  if(!NET.ws||NET.ws.readyState>1)netConnect(NET.room,true);else sendHi();
+  if(NET.opp)NET.opp.last=Math.max(NET.opp.last,performance.now()-2500)});
 (()=>{const q=new URLSearchParams(location.search),r=q.get('room');if(!r||!/^[A-Z0-9]{4,8}$/.test(r))return;
+  let mine='';try{mine=sessionStorage.getItem('svroom')||''}catch(e){}
+  if(mine===r){setTimeout(()=>{hideChal&&hideChal();pvpJoin(r)},300);return} // page reload: rejoin silently
   const h=(q.get('h')||'친구').slice(0,10);setTimeout(()=>{const d=document.getElementById('inv');if(!d)return;document.getElementById('inv-title').textContent=`${h}님이 실시간 결투를 신청했어요!`;const nm=document.getElementById('inv-name');if(nm&&!nm.value)nm.value=myName();d.hidden=false;hideChal&&hideChal()},300)})();
-
 (()=>{const n=myName();for(const id of['pvp-name','pvp-name2']){const el=document.getElementById(id);if(el&&!el.value)el.value=n}})();
 
 initRank();
