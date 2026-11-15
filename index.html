@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>지하철빌런특공대</title>
 <meta name="description" content="7호선 열 칸의 빌런을 정리하는 2D 액션게임">
+<meta property="og:title" content="지하철빌런특공대">
+<meta property="og:description" content="7호선 빌런 소탕 액션! 누구나 바로 플레이하고 TOP10 랭킹에 도전하세요">
+<meta property="og:url" content="https://rhkrqod-svg.github.io/subway-villain/">
+<meta property="og:type" content="website">
 <style>html{color-scheme:dark}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 </head>
 <body>
@@ -106,6 +110,7 @@ li.me{background:rgba(227,183,92,.08)}
   <div class="top">
     <span class="logo"><span class="badge" aria-hidden="true">7</span>지하철빌런특공대</span>
     <div class="tools">
+      <button id="sh" class="mini" type="button">공유</button>
       <button id="rk" class="mini" type="button">랭킹</button>
       <button id="fs" class="mini icon" type="button" aria-label="전체 화면"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button id="snd" class="mini icon" type="button" aria-label="소리 끄기" aria-pressed="false"><svg class="on" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><svg class="off" hidden viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
@@ -131,7 +136,7 @@ li.me{background:rgba(227,183,92,.08)}
       </div>
     </div>
   </div>
-  <p class="keys">이동 <kbd>←</kbd> <kbd>→</kbd> · 대시 방향키 두 번 (또는 <kbd>Shift</kbd>) · 점프 <kbd>Space</kbd> · 베기 <kbd>Z</kbd> 연타 3단 콤보 · 막기 <kbd>X</kbd> 누르고 있기, 맞기 직전에 누르면 패링 · 특기 <kbd>C</kbd> · 아이템 <kbd>Q</kbd> 또는 <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></p>
+  <p class="keys">이동 <kbd>←</kbd> <kbd>→</kbd> · 대시 방향키 두 번 (또는 <kbd>Shift</kbd>) · 점프 <kbd>Space</kbd> · 베기 <kbd>Z</kbd> 연타 3단 콤보 · 막기 <kbd>X</kbd> 누르고 있기, 맞기 직전에 누르면 패링 · 특기 <kbd>C</kbd> · 아이템 <kbd>Q</kbd> 또는 <kbd>1</kbd>~<kbd>5</kbd></p>
   <p class="tip">휴대폰을 가로로 돌리면 화면이 커집니다</p>
   <section class="rank" id="rank" hidden aria-labelledby="rank-title">
     <div class="rank-head"><h2 id="rank-title">TOP 10 랭킹</h2><span class="scope" id="rank-scope">불러오는 중</span></div>
@@ -141,13 +146,25 @@ li.me{background:rgba(227,183,92,.08)}
     </form>
     <p class="msg" id="rank-msg"></p>
     <ol id="rank-list"></ol>
-    <div class="actions"><button class="cta ghost" type="button" id="rank-close">닫기</button><button class="cta" type="button" id="rank-again">다시 하기</button></div>
+    <div class="actions"><button class="cta ghost" type="button" id="rank-close">닫기</button><button class="cta ghost" type="button" id="rank-share">점수 공유</button><button class="cta" type="button" id="rank-again">다시 하기</button></div>
   </section>
 </div>
 
 <script src="assets.js"></script>
 <script>
 /* ===== core ===== */
+const SHARE_URL='https://rhkrqod-svg.github.io/subway-villain/';
+async function shareGame(withScore,btn){
+  const base='7호선 빌런 소탕 액션 지하철빌런특공대';
+  const text=withScore&&typeof score!=='undefined'&&score>0?`지하철빌런특공대에서 ${score.toLocaleString('ko-KR')}점 찍었어! 이겨볼래?`:base;
+  try{if(navigator.share){await navigator.share({title:'지하철빌런특공대',text,url:SHARE_URL});return}}catch(e){if(e&&e.name==='AbortError')return}
+  const all=text+'\n'+SHARE_URL;let ok=false;
+  try{await navigator.clipboard.writeText(all);ok=true}catch(e){}
+  if(!ok){try{const ta=document.createElement('textarea');ta.value=all;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove()}catch(e){}}
+  if(btn){const o=btn.textContent;btn.textContent=ok?'링크 복사됨!':'복사 실패';setTimeout(()=>btn.textContent=o,1600)}
+}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#sh,#rank-share');if(!b)return;e.preventDefault();shareGame(b.id==='rank-share',b)});
+
 const $=s=>document.querySelector(s);
 const cv=$('#g'),ctx=cv.getContext('2d');
 const W=480,H=270,FLOOR=226,G=1300,LINE7='#747f00',LINE7HI='#c6d33a';
@@ -237,7 +254,7 @@ function setK(k,v){
 const KM={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'jump',KeyW:'jump',Space:'jump',KeyK:'jump',ShiftLeft:'dash',ShiftRight:'dash',KeyV:'dash',KeyQ:'item',KeyE:'item',KeyX:'guard',KeyS:'guard',ArrowDown:'guard',KeyI:'guard',KeyZ:'atk',KeyJ:'atk',KeyC:'sp',KeyL:'sp'};
 addEventListener('keydown',e=>{
   const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='BUTTON'&&e.code==='Enter')return;
-  if(state==='play'&&/^Digit[123]$/.test(e.code)){audio();useItem(+e.code.slice(5)-1);return}
+  if(state==='play'&&/^Digit[1-5]$/.test(e.code)){audio();useItem(+e.code.slice(5)-1);return}
   if(e.code==='Enter'){audio();if(state==='select'){if(stT>.25)startWith(sel)}else if(state==='upgrade'){if(stT>.45)takeUpgrade(pickSel)}else tapStart();return}
   const k=KM[e.code];if(!k)return;
   e.preventDefault();audio();if(!e.repeat)setK(k,true);if(state!=='select')tapStart();
@@ -266,7 +283,7 @@ cv.addEventListener('pointerdown',e=>{
   }
   if(state==='play'){
     const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;
-    for(let i=0;i<3;i++)if(x>=8+i*22&&x<=8+i*22+19&&y>=48&&y<=67){useItem(i);return}
+    if(y>=44&&y<=78)for(let i=0;i<5;i++)if(x>=6+i*29&&x<=6+i*29+30){useItem(i);return}
   }
   tapStart();
 });
@@ -1174,7 +1191,7 @@ function updItems(dt){
     it.t+=dt;it.vy+=G*dt;it.y+=it.vy*dt;if(it.y>FLOOR-6){it.y=FLOOR-6;it.vy=0}
     if(Math.abs(it.x-P.x)<14&&Math.abs(it.y-(P.y-10))<24){
       const I=ITEMS[it.k];
-      if(P.bag.length<3){it.got=true;P.bag.push(it.k);addText(P.x,P.y-56,I.n+' 획득','#ffffff',10);sfx.pick();ring(P.x,P.y-24,{c:I.c,v:90})}
+      if(P.bag.length<5){it.got=true;P.bag.push(it.k);addText(P.x,P.y-56,I.n+' 획득','#ffffff',10);sfx.pick();ring(P.x,P.y-24,{c:I.c,v:90})}
       else if(!it.full){it.full=true;addText(P.x,P.y-56,'가방이 가득 찼어요','#ff8a75',9,.8)}
     }else it.full=false;
   }
@@ -1577,16 +1594,16 @@ function hud(){
   gbar(45,32,104,5,P.en/100,0,ready?'#ffe9a6':'#b99a52',ready?'#d99a2a':'#6e5a2e');
   ctx.fillStyle='#ffffff';ctx.fillRect(45+104*CH.spCost/100+1.5,31,1,7);
   if(ready){ctx.strokeStyle=`rgba(255,240,190,${.35+.45*Math.sin(t*8)})`;ctx.lineWidth=1;ctx.strokeRect(44,31.5,108,6)}
-  for(let i=0;i<3;i++){
-    const x=8+i*22,y=48,k=P.bag[i];
-    ctx.fillStyle='rgba(6,10,8,.78)';ctx.fillRect(x,y,19,19);ctx.strokeStyle=k?ITEMS[k].c:'rgba(255,255,255,.18)';ctx.lineWidth=k?1.2:.8;ctx.strokeRect(x+.5,y+.5,18,18);
-    if(k)itemIcon(k,x+9.5,y+10,1);
-    txt(String(i+1),x+2,y+6.5,`bold 5.5px ${BODY}`,'rgba(255,255,255,.55)');
+  for(let i=0;i<5;i++){
+    const x=8+i*29,y=48,k=P.bag[i];
+    ctx.fillStyle=k?'rgba(14,22,17,.86)':'rgba(6,10,8,.7)';ctx.fillRect(x,y,26,26);ctx.strokeStyle=k?ITEMS[k].c:'rgba(255,255,255,.18)';ctx.lineWidth=k?1.4:.8;ctx.strokeRect(x+.5,y+.5,25,25);
+    if(k)itemIcon(k,x+13,y+14,1.45);
+    txt(String(i+1),x+2.5,y+7.5,`bold 6.5px ${BODY}`,'rgba(255,255,255,.6)');
   }
-  if(P.bag.length)txt('Q · 탭해서 사용',75,61,`bold 6px ${BODY}`,'#9fb3a6');
-  if(P.hotT>0)otxt(`무적 ${P.hotT.toFixed(1)}초`,75,54,`bold 7px ${BODY}`,'#ff9a7c','left',2);
-  const nu=P.m.ups.length;if(nu){for(let i=0;i<Math.min(nu,14);i++)skew(8+i*6.5,71,4.5,4.5,1.5,MC[P.m.ups[i]]||'#e3b75c')}
-  if(P.slowT>0)otxt(`느려짐 ${P.slowT.toFixed(1)}초`,8,nu?87:79,`bold 8px ${BODY}`,'#ff8fc8','left');
+  if(P.bag.length&&P.hotT<=0)txt('탭해서 사용',155,64,`bold 6.5px ${BODY}`,'#9fb3a6');
+  if(P.hotT>0)otxt(`무적 ${P.hotT.toFixed(1)}초`,155,64,`bold 7.5px ${BODY}`,'#ff9a7c','left',2);
+  const nu=P.m.ups.length;if(nu){for(let i=0;i<Math.min(nu,14);i++)skew(8+i*6.5,79,4.5,4.5,1.5,MC[P.m.ups[i]]||'#e3b75c')}
+  if(P.slowT>0)otxt(`느려짐 ${P.slowT.toFixed(1)}초`,8,nu?95:87,`bold 8px ${BODY}`,'#ff8fc8','left');
   plate(W-118,6,112,38,LINE7HI);
   txt('SCORE',W-112,16,`bold 6px ${BODY}`,'#8aa196');txt(score.toLocaleString('en-US'),W-12,22,`15px ${DISP}`,'#f3d27a','right');
   ctx.fillStyle=LINE7;ctx.beginPath();ctx.arc(W-106,33.5,5,0,7);ctx.fill();txt('7',W-106,36,`bold 6.5px ${BODY}`,'#ffffff','center');
