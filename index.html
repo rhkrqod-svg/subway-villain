@@ -980,6 +980,7 @@ function updPlayer(dt){
     for(const c of shots)if(c.kind!=='wave'&&c.kind!=='quake'&&!c.friendly&&!c.gone&&Math.abs(c.x-P.x)<46&&c.y>P.y-66&&c.y<P.y+4){c.gone=true;score+=10;spark(c.x,c.y,1,'#e3e7e9',5)}
     if(Math.random()<.6)parts.push({x:P.x+rnd(-35,35),y:FLOOR-2-rnd(0,40),vx:rnd(-30,30),vy:-60,life:.3,max:.3,c:'#dfe6ea',size:1.5});
   }
+  if(MODE==='pvp')P.dbuf=0; // no dash in live 1:1 battles
   if(P.dbuf>0&&P.dashCd<=0&&!busy&&!P.guard&&(P.onG||!P.airDash)){
     const ax0=(keys.left?-1:0)+(keys.right?1:0);P.face=dashHint||ax0||P.face;dashHint=0;
     P.dashT=.2;P.djT=.5;P.dashCd=.5*P.m.dashCd;P.dbuf=0;P.atkT=0;P.inv=Math.max(P.inv,.22);P.ghostT=0;if(!P.onG)P.airDash=true;
@@ -2349,7 +2350,7 @@ function pvpUpdate(raw){
     NET.goT-=raw;NET.sendT-=raw;if(NET.sendT<=0){NET.sendT=1/15;sendSnap()}
     for(const e of enemies)if(e.type==='peer')updPeer(e,raw);
     const tx=clamp(P.x-VW*.42+P.face*10,0,CAR_LEN-VW);camX+=(tx-camX)*Math.min(1,raw*7);
-    if(NET.goT<=0){state='play';banner={t:1.2,s:'FIGHT!',s2:`VS ${NAMES.peer}`};sfx.boss();sendHi()}
+    if(NET.goT<=0){state='play';banner={t:1.6,s:'FIGHT!',s2:`VS ${NAMES.peer} · 결투에선 대시 없음`};sfx.boss();sendHi()}
     return true;
   }
   if(state==='play'){
