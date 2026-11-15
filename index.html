@@ -9,7 +9,7 @@
 <meta property="og:description" content="7호선 빌런 소탕 액션! 누구나 바로 플레이하고 TOP10 랭킹에 도전하세요">
 <meta property="og:url" content="https://rhkrqod-svg.github.io/subway-villain/">
 <meta property="og:type" content="website">
-<style>html{color-scheme:dark}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<style>html{color-scheme:dark;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 </head>
 <body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -79,6 +79,14 @@ li .st.won{color:var(--line7hi)}
 li .sc{font:400 16px var(--display);color:var(--fg);font-variant-numeric:tabular-nums;text-align:right;min-width:56px}
 li.me{background:rgba(227,183,92,.08)}
 .empty{font-size:13px;color:var(--muted);padding:10px 2px;margin:0}
+.brag{display:flex;flex-direction:column;gap:6px;border:1px solid var(--gold);background:linear-gradient(135deg,rgba(227,183,92,.16),rgba(116,127,0,.10));border-radius:10px;padding:12px 14px}
+.brag-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.brag-lbl{font-size:12px;color:var(--muted);font-weight:700}
+.brag-score{font:400 28px var(--display);color:var(--gold)}
+.brag-sub{margin:0;font-size:12px;color:var(--line7hi);font-weight:700}
+.brag-msg{margin:0;white-space:pre-line;font-size:13px;line-height:1.5;color:var(--fg);background:rgba(0,0,0,.25);border-radius:6px;padding:8px 10px}
+.brag-row{display:flex;gap:8px;flex-wrap:wrap}
+.brag-go{flex:1;font-size:15px;padding:11px 16px}
 .actions{display:flex;gap:8px;justify-content:flex-end}
 @media (pointer:coarse){
   .pad{display:flex}
@@ -87,6 +95,10 @@ li.me{background:rgba(227,183,92,.08)}
   body.ranking .pad{display:none}
 }
 
+.logo{white-space:nowrap;min-width:0;font-size:clamp(15px,4.4vw,20px);gap:6px}
+.tools{flex-shrink:0;gap:5px}
+.mini{white-space:nowrap}
+@media (max-width:440px){.mini{padding:6px 9px}.mini.icon{padding:5px 7px}.badge{width:18px;height:18px;font-size:10px}}
 .tip{display:none;margin:0;color:var(--muted);font-size:12px;text-align:center}
 @media (pointer:coarse) and (orientation:portrait){.tip{display:block}}
 @media (pointer:coarse) and (orientation:landscape){
@@ -140,6 +152,12 @@ li.me{background:rgba(227,183,92,.08)}
   <p class="tip">휴대폰을 가로로 돌리면 화면이 커집니다</p>
   <section class="rank" id="rank" hidden aria-labelledby="rank-title">
     <div class="rank-head"><h2 id="rank-title">TOP 10 랭킹</h2><span class="scope" id="rank-scope">불러오는 중</span></div>
+    <div class="brag" id="brag" hidden>
+      <div class="brag-top"><span class="brag-lbl">이번 기록</span><span class="brag-score" id="brag-score"></span></div>
+      <p class="brag-sub" id="brag-sub"></p>
+      <p class="brag-msg" id="brag-msg"></p>
+      <div class="brag-row"><button class="cta brag-go" type="button" id="brag-go">친구에게 도전장 보내기</button><button class="cta ghost" type="button" id="brag-new">멘트 바꾸기</button></div>
+    </div>
     <form class="submit" id="rank-form" hidden>
       <p id="rank-prompt">점수를 등록하세요</p>
       <div class="row"><input id="rank-name" maxlength="10" placeholder="이름 (최대 10자)" autocomplete="nickname"><button class="cta" id="rank-save" type="submit">등록</button></div>
@@ -154,16 +172,49 @@ li.me{background:rgba(227,183,92,.08)}
 <script>
 /* ===== core ===== */
 const SHARE_URL='https://rhkrqod-svg.github.io/subway-villain/';
+const BRAG=[
+ s=>`7호선 빌런 소탕 ${s.sc}점 찍음 😎
+${s.stage}까지 뚫었는데 넌 몇 칸까지 가냐?`,
+ s=>`${s.ch}로 ${s.sc}점 🚇
+이거 못 넘으면 내일부터 지하철 타지 마라 ㅋㅋ`,
+ s=>`지하철빌런특공대 ${s.sc}점…
+내 점수 깨면 커피 쏜다 ☕ (못 깰 듯)`,
+ s=>`퇴근길 빌런들 다 정리하고 왔다 💥 ${s.sc}점
+너도 7호선 탈 자격 있는지 테스트해봐`,
+ s=>`${s.stage}에서 장렬히 전사… ${s.sc}점 🪦
+복수해 줄 사람 구함`
+];
+let bragIdx=Math.floor(Math.random()*BRAG.length);
+function bragInfo(){
+  const r=lastRun||{score:typeof score!=='undefined'?score:0,car:typeof car!=='undefined'?car:1};
+  const rows=(board||[]).slice(0,10);let rank=0;
+  if(r.score>0&&(rows.length<10||r.score>rows[9].score))rank=rows.filter(x=>x.score>r.score).length+1;
+  return{sc:Number(r.score||0).toLocaleString('ko-KR'),stage:fmtStage(r),ch:(CH&&CH.name)||'단소살인마',rank,raw:r.score||0};
+}
+function bragText(){
+  const i=bragInfo();let t=BRAG[bragIdx](i);
+  if(i.rank)t=`🏆 공개 랭킹 ${i.rank}위 등극! `+t;
+  return t+String.fromCharCode(10)+'👇 바로 도전하기 (설치·로그인 없음)';
+}
+function updateBrag(){
+  const b=document.getElementById('brag');if(!b)return;
+  if(!lastRun||!lastRun.score){b.hidden=true;return}
+  const i=bragInfo();b.hidden=false;
+  document.getElementById('brag-score').textContent=i.sc+'점';
+  document.getElementById('brag-sub').textContent=(i.rank?`지금 기록이면 TOP 10 중 ${i.rank}위 · `:'')+i.stage;
+  document.getElementById('brag-msg').textContent=bragText();
+}
 async function shareGame(withScore,btn){
-  const base='7호선 빌런 소탕 액션 지하철빌런특공대';
-  const text=withScore&&typeof score!=='undefined'&&score>0?`지하철빌런특공대에서 ${score.toLocaleString('ko-KR')}점 찍었어! 이겨볼래?`:base;
+  const text=withScore&&lastRun&&lastRun.score?bragText():'7호선 빌런 소탕 액션 지하철빌런특공대 🚇'+String.fromCharCode(10)+'설치·로그인 없이 바로 플레이!';
   try{if(navigator.share){await navigator.share({title:'지하철빌런특공대',text,url:SHARE_URL});return}}catch(e){if(e&&e.name==='AbortError')return}
-  const all=text+'\n'+SHARE_URL;let ok=false;
+  const all=text+String.fromCharCode(10)+SHARE_URL;let ok=false;
   try{await navigator.clipboard.writeText(all);ok=true}catch(e){}
   if(!ok){try{const ta=document.createElement('textarea');ta.value=all;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove()}catch(e){}}
-  if(btn){const o=btn.textContent;btn.textContent=ok?'링크 복사됨!':'복사 실패';setTimeout(()=>btn.textContent=o,1600)}
+  if(btn){const o=btn.textContent;btn.textContent=ok?'복사됨! 카톡에 붙여넣기':'복사 실패';setTimeout(()=>btn.textContent=o,2000)}
 }
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#sh,#rank-share');if(!b)return;e.preventDefault();shareGame(b.id==='rank-share',b)});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#sh,#rank-share,#brag-go,#brag-new');if(!b)return;e.preventDefault();
+  if(b.id==='brag-new'){bragIdx=(bragIdx+1)%BRAG.length;updateBrag();return}
+  shareGame(b.id!=='sh',b)});
 
 const $=s=>document.querySelector(s);
 const cv=$('#g'),ctx=cv.getContext('2d');
@@ -1775,7 +1826,7 @@ function renderRank(){
     const sc=document.createElement('span');sc.className='sc';sc.textContent=Number(r.score).toLocaleString('ko-KR');
     li.append(n,nm,st,sc);list.appendChild(li);
   });
-  $('#rank-scope').textContent=localMode?'이 기기에만 저장됨':'누구나 보는 공개 랭킹';
+  updateBrag();$('#rank-scope').textContent=localMode?'이 기기에만 저장됨':'누구나 보는 공개 랭킹';
   const f=$('#rank-form');f.hidden=true;
   if(lastRun&&!submitted&&lastRun.score>0){
     const tenth=rows.length>=10?rows[9].score:0;
