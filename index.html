@@ -97,6 +97,11 @@ li.me{background:rgba(227,183,92,.08)}
 .duelbox{width:100%;max-width:560px;background:var(--panel);border:2px solid var(--gold);border-radius:10px;padding:14px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px}
 .duel-res{margin:0;font:400 26px var(--display)}
 .duel-row{display:flex;gap:8px;flex-wrap:wrap}.duel-row .cta{flex:1}
+.pvpbar{width:100%;max-width:560px;box-sizing:border-box;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:linear-gradient(90deg,rgba(255,122,92,.18),rgba(227,183,92,.12));border:1px solid #ff7a5c;border-radius:10px;padding:8px 10px;font-size:13px;color:var(--fg)}
+.pvpbar span{flex:1 1 140px}.pvpbar input{flex:1 1 90px;min-width:0;font:600 13px var(--body);color:var(--fg);background:rgba(0,0,0,.3);border:1px solid var(--edge);border-radius:6px;padding:7px 8px}
+.pvp{width:100%;max-width:560px;background:var(--panel);border:2px solid #ff7a5c;border-radius:10px;padding:12px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px}
+.pvp-head{display:flex;flex-direction:column;gap:2px}.pvp-head b{font:400 18px var(--display);color:#ffb9ad}#pvp-status{font-size:13px;color:var(--line7hi);font-weight:700}
+
 
 .actions{display:flex;gap:8px;justify-content:flex-end}
 @media (pointer:coarse){
@@ -159,8 +164,15 @@ li.me{background:rgba(227,183,92,.08)}
       </div>
     </div>
   </div>
+  <div class="pvpbar"><span>⚡ 친구와 <b>실시간 1:1 결투</b></span><input id="pvp-name" maxlength="10" placeholder="내 이름" autocomplete="nickname"><button class="cta" type="button" id="pvp-new">방 만들기</button></div>
   <p class="keys">이동 <kbd>←</kbd> <kbd>→</kbd> · 대시 방향키 두 번 (또는 <kbd>Shift</kbd>) · 점프 <kbd>Space</kbd> · 베기 <kbd>Z</kbd> 연타 3단 콤보 · 막기 <kbd>X</kbd> 누르고 있기, 맞기 직전에 누르면 패링 · 특기 <kbd>C</kbd> · 아이템 <kbd>Q</kbd> 또는 <kbd>1</kbd>~<kbd>5</kbd></p>
   <p class="tip">휴대폰을 가로로 돌리면 화면이 커집니다</p>
+  <section class="pvp" id="pvp" hidden aria-label="실시간 결투">
+    <div class="pvp-head"><b>⚡ 실시간 1:1 결투</b><span id="pvp-status"></span></div>
+    <input class="duel-name" id="pvp-name2" maxlength="10" placeholder="내 이름 (상대에게 보여요)" autocomplete="nickname">
+    <div class="duel-row"><button class="cta brag-go" type="button" id="pvp-invite">카톡으로 초대 보내기</button><button class="cta brag-go" type="button" id="pvp-again" hidden>재대결</button></div>
+    <div class="duel-row"><button class="cta ghost" type="button" id="pvp-change">캐릭터 바꾸기</button><button class="cta ghost" type="button" id="pvp-leave">나가기</button></div>
+  </section>
   <section class="duelbox" id="duelbox" hidden aria-label="결투 결과">
     <p class="duel-res" id="duel-res"></p>
     <p class="brag-msg" id="duel-msg"></p>
@@ -185,6 +197,14 @@ li.me{background:rgba(227,183,92,.08)}
     <ol id="rank-list"></ol>
     <div class="actions"><button class="cta ghost" type="button" id="rank-close">닫기</button><button class="cta ghost" type="button" id="rank-share">점수 공유</button><button class="cta" type="button" id="rank-again">다시 하기</button></div>
   </section>
+</div>
+<div class="chal" id="inv" hidden role="dialog" aria-modal="true" aria-labelledby="inv-title">
+  <div class="chal-card">
+    <h2 class="chal-title" id="inv-title"></h2>
+    <p class="chal-sub">캐릭터를 고르면 바로 1:1 실시간 결투가 시작돼요</p>
+    <input class="duel-name" id="inv-name" maxlength="10" placeholder="내 이름 (상대에게 보여요)" autocomplete="nickname">
+    <button class="cta" type="button" id="pvp-join">⚡ 결투 입장하기</button>
+  </div>
 </div>
 <div class="chal" id="chal" hidden role="dialog" aria-modal="true" aria-labelledby="chal-title">
   <div class="chal-card">
@@ -771,7 +791,7 @@ function mk(type,x,elite){
   return{type,boss,elite:!!elite,tough:!!elite||type==='muscle',x,y:sp?HANGY:FLOOR,vx:0,vy:0,hp,max:hp,hpLag:hp,w:D.w*k,h:D.h*k,spd:D.spd,face:-1,awake:false,hurt:0,flash:0,cd:1,st:sp?'hang':'walk',stT:0,
     dashDir:-1,dashLen:.42,dead:false,deadT:0,throwT:0,walk:0,mvf:false,seed:Math.random()*10,combo:0,air:false,downT:0,slashes:0,hangHits:0,scd:rnd(5,8),gcd:rnd(2,4),shield:0,lvx:0,slam:false};
 }
-function startWith(i){sel=i;CH=CHARS[i];try{localStorage.setItem('danso-char',CH.id)}catch(e){}if(MODE==='duel')startDuel();else{targetPassed=false;newGame()}}
+function startWith(i){sel=i;CH=CHARS[i];if(MODE==='pvp'&&typeof pvpPick==='function'){pvpPick();return}try{localStorage.setItem('danso-char',CH.id)}catch(e){}if(MODE==='duel')startDuel();else{targetPassed=false;newGame()}}
 function toSelect(){if(typeof showRank==='function')showRank(false);state='select';stT=0;bgmOn=true;bgmMode=0}
 function newGame(){
   if(typeof showRank==='function')showRank(false);
@@ -813,7 +833,7 @@ function endIntro(){state='play';intro=null;P.buf=0;P.jbuf=0;P.sbuf=0;P.dbuf=0}
 function tapStart(){
   if(state==='intro'&&intro&&intro.t>.7){endIntro();return}
   if(state==='title'){state='select';stT=0;return}
-  if((state==='over'||state==='win')&&stT>.8)toSelect();
+  if((state==='over'||state==='win')&&stT>.8&&MODE!=='pvp')toSelect();
 }
 
 /* ===== fx ===== */
@@ -839,6 +859,7 @@ function wake(e){
 }
 function hitEnemy(e,base,dir,o={}){
   if(e.dead)return false;
+  if(e.type==='peer')return typeof netHit==='function'?netHit(e,base,dir,o):false;
   if(!e.awake)wake(e);
   if((e.st==='guard'||e.shield>0)&&dir===-e.face&&!o.pierce){
     e.flash=.05;spark(e.x+e.face*12,e.y-26,-dir,GC[e.type]||'#f6d55c',6);sfx.deflect();addText(e.x,e.y-e.h-6,'막힘!',GC[e.type]||'#f6d55c',10,.5);
@@ -1073,6 +1094,7 @@ function updSpider(e,dt,dx,adx,dir){
 function startDash(e,dir,wind,len){e.st='wind';e.stT=wind;e.dashDir=dir;e.face=dir;e.dashLen=len;addText(e.x,e.y-e.h-8,'!','#ff6b55',e.boss?16:14,.5)}
 function updEnemy(e,dt){
   if(e.type==='rival'){updRival(e,dt);return}
+  if(e.type==='peer'){if(typeof updPeer==='function')updPeer(e,dt);return}
   e.hpLag+=(e.hp-e.hpLag)*Math.min(1,dt*3);
   if(e.dead){e.deadT-=dt;e.vy+=G*dt;e.x+=e.vx*dt;e.y+=e.vy*dt;if(e.y>FLOOR){e.y=FLOOR;e.vx*=.8;e.vy=0}return}
   const dx=P.x-e.x,adx=Math.abs(dx),dir=Math.sign(dx)||1;
@@ -1297,6 +1319,7 @@ function update(raw){
     }
     return;
   }
+  if(MODE==='pvp'&&typeof pvpUpdate==='function'&&pvpUpdate(raw))return;
   if(state==='trans'){
     transT+=raw;
     if(transT>=.6&&!swapped){swapped=true;car++;startCar();if(car===11){sfx.win();banner={t:3.4,s:'열 칸 평정! 여기부터 무한 모드',s2:'쓰러질 때까지 점점 강해집니다'}}}
@@ -1327,7 +1350,7 @@ function update(raw){
   enemies=enemies.filter(e=>!(e.dead&&e.deadT<=0));
   updShots(dt);if(state!=='play')return;
   updItems(dt);
-  if(!doorOpen&&enemies.length===0&&MODE!=='duel'){
+  if(!doorOpen&&enemies.length===0&&MODE==='run'){
     gradeCar();
     doorOpen=true;sfx.chime();
     banner={t:2.6,s:car===10?'모든 칸 평정! 마지막 문이 열립니다':'내리실 문은 오른쪽입니다',s2:'오른쪽 끝 문으로 이동하세요'};
@@ -1495,7 +1518,7 @@ function drawDuelEnd(){
   if(stT>.8&&Math.floor(t*2)%2===0)center('화면을 탭하면 다시 캐릭터 선택',216,`bold 9px ${BODY}`,'#ffffff');
 }
 function drawModeTag(){
-  const s=MODE==='duel'?`⚔ 1:1 결투 · VS ${NAMES.rival} · 내 캐릭터를 고르세요`:TARGET?`🏁 점수 대결 · ${TARGET.n}님의 ${Number(TARGET.s).toLocaleString('ko-KR')}점을 넘겨라`:'';
+  const s=MODE==='pvp'?`⚡ 실시간 결투 · 내 캐릭터를 고르세요${NET&&NET.opp?' · 상대: '+NET.opp.n:''}`:MODE==='duel'?`⚔ 1:1 결투 · VS ${NAMES.rival} · 내 캐릭터를 고르세요`:TARGET?`🏁 점수 대결 · ${TARGET.n}님의 ${Number(TARGET.s).toLocaleString('ko-KR')}점을 넘겨라`:'';
   if(!s)return;ctx.fillStyle='rgba(120,20,16,.85)';ctx.fillRect(0,H-26,W,18);center(s,H-14,`bold 9px ${BODY}`,'#ffe1d8');
 }
 function drawTarget(){
@@ -1604,6 +1627,7 @@ function drawSpider(e,o,fx){
   o.air=true;o.hand=[sx-12,sy+2];o.backHand=[sx-12,sy+4];drawRig('spider',o);
 }
 function drawEnemyBody(e,fx){
+  if(e.type==='peer'){if(typeof drawPeer==='function')drawPeer(e,fx);return}
   ctx.save();ctx.translate(e.x,e.y);
   if(e.dead){const a=clamp(e.deadT/(e.boss?1.6:.9),0,1);ctx.globalAlpha*=a;ctx.rotate(-(1-a)*1.3*Math.sign(e.vx||1))}
   ctx.scale(e.face,1);if(e.boss&&e.type!=='rival')ctx.scale(BS,BS);else if(e.elite)ctx.scale(1.2,1.2);
@@ -1991,7 +2015,9 @@ function draw(){
   drawPost();
   if(state==='title'){drawTitle();return}
   if(state==='select'){drawSelect();drawModeTag();return}
+  if(state==='lobby'){if(typeof drawLobby==='function')drawLobby();return}
   hud();drawTarget();
+  if(MODE==='pvp'){if(state==='count')drawCount();if(state==='over'){drawPvpEnd();return}}
   if(cutin)drawCutin();
   if(state==='intro')drawIntro();
   if(state==='upgrade')drawUpgrade();
@@ -2139,6 +2165,203 @@ document.addEventListener('click',e=>{
   else if(b.id==='duel-exit')leaveModes();
 });
 if(CHAL)setTimeout(showChal,300);
+
+
+/* ===== realtime 1:1 battle over Supabase Realtime broadcast (raw Phoenix websocket) ===== */
+const PVP_K=3;
+const NET={ws:null,room:'',role:'',id:Math.random().toString(36).slice(2,10),opp:null,oppId:'',ready:false,joined:false,lastRx:0,lastHi:0,sendT:0,hb:null,ref:1,res:null,goT:0,status:''};
+function rid(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
+function roomURL(){return SHARE_URL+'?room='+NET.room+'&h='+encodeURIComponent((myName()||'친구').slice(0,10))}
+function netConnect(room,role){
+  netClose();NET.room=room;NET.role=role;NET.opp=null;NET.oppId='';NET.ready=false;NET.joined=false;NET.res=null;NET.lastRx=performance.now();
+  const ws=new WebSocket(SB_URL.replace('https://','wss://')+'/realtime/v1/websocket?apikey='+encodeURIComponent(SB_KEY)+'&vsn=1.0.0');NET.ws=ws;
+  const topic='realtime:svduel-'+room;
+  ws.onopen=()=>{ws.send(JSON.stringify({topic,event:'phx_join',payload:{config:{broadcast:{self:false,ack:false},presence:{key:''},postgres_changes:[],private:false}},ref:String(NET.ref++)}));
+    NET.hb=setInterval(()=>{try{ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:String(NET.ref++)}))}catch(e){}},25000)};
+  ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}
+    if(m.event==='phx_reply'&&m.topic===topic&&!NET.joined){if(m.payload&&m.payload.status==='ok'){NET.joined=true;pvpStatus();netSend({t:'hi'})}else pvpStatus('서버 연결 실패. 다시 시도해 주세요')}
+    else if(m.event==='broadcast'&&m.payload&&m.payload.payload)onNet(m.payload.payload)};
+  ws.onclose=()=>{NET.joined=false;if(MODE==='pvp'&&NET.ws===ws)pvpStatus('연결이 끊겼어요. 나가기 후 다시 들어와 주세요')};
+  ws.onerror=()=>pvpStatus('연결 오류가 났어요');
+}
+function netClose(){if(NET.hb)clearInterval(NET.hb);NET.hb=null;if(NET.ws){const w=NET.ws;NET.ws=null;try{w.close()}catch(e){}}NET.joined=false}
+function netSend(p){if(!NET.ws||!NET.joined)return;p.id=NET.id;if(p.t==='hi'){p.n=(myName()||'익명').slice(0,10);p.c=NET.ready?CH.id:null;p.r=NET.ready;p.role=NET.role}
+  try{NET.ws.send(JSON.stringify({topic:'realtime:svduel-'+NET.room,event:'broadcast',payload:{type:'broadcast',event:'m',payload:p},ref:String(NET.ref++)}))}catch(e){}}
+function onNet(p){
+  if(!p||p.id===NET.id)return;
+  if(NET.oppId&&p.id!==NET.oppId)return;
+  NET.lastRx=performance.now();
+  if(p.t==='hi'){
+    const first=!NET.opp;NET.oppId=p.id;NET.opp=Object.assign(NET.opp||{},{n:String(p.n||'친구').slice(0,10),c:p.c,ready:!!p.r});
+    if(first){netSend({t:'hi'});sfx.pick&&sfx.pick()}
+    if(state==='play'||state==='count'){} // ignore mid-fight hellos
+    pvpStatus();return;
+  }
+  if(p.t==='go'){if(state==='lobby'||state==='over')pvpBegin();return}
+  if(p.t==='s'){const e=enemies.find(q=>q.type==='peer');if(e)peerSnap(e,p);return}
+  if(p.t==='hit'){if(state==='play')pvpHurt(p);return}
+  if(p.t==='res'){if(state==='play'){if(p.r==='parry'){P.hurtT=.6;P.vx=-p.dir*150;P.atkT=0;P.rushT=0;addText(P.x,P.y-64,'패링 당함!','#fff6c8',11,.9);shake=5}else if(p.r==='block'){const e=enemies.find(q=>q.type==='peer');if(e)addText(e.x,e.y-64,'막힘!','#a0cdff',10,.5);sfx.deflect()}}return}
+  if(p.t==='fx'){const e=enemies.find(q=>q.type==='peer');if(e)peerFx(e,p);return}
+  if(p.t==='ko'){if(state==='play')pvpOver('win');return}
+  if(p.t==='bye'){NET.opp=null;NET.oppId='';pvpStatus('상대가 나갔어요');if(state==='play'||state==='count')pvpOver('dc');return}
+}
+/* ---- lobby / flow ---- */
+function pvpCreate(){
+  const n=readName('pvp-name');MODE='pvp';RIVAL=null;TARGET=null;DUEL=null;hideDuelBox&&hideDuelBox();hideChal&&hideChal();
+  netConnect(rid(),'host');showPvpPanel();audio();toSelect();
+}
+function pvpJoin(room){MODE='pvp';RIVAL=null;TARGET=null;netConnect(room,'guest');showPvpPanel();audio();toSelect()}
+function pvpLeave(){netSend({t:'bye'});netClose();MODE='run';NET.room='';const p=document.getElementById('pvp');if(p)p.hidden=true;audio();toSelect()}
+function pvpPick(){NET.ready=true;state='lobby';stT=0;netSend({t:'hi'});pvpStatus()}
+function pvpBegin(){
+  if(typeof showRank==='function')showRank(false);
+  NET.res=null;car=1;score=0;chain=0;maxChain=0;runTime=0;grades=[];fever=0;feverLock=true;slow=0;hs=0;cutin=null;
+  P=mkPlayer();P.en=20;startCar();doorOpen=false;curBoss=null;
+  const host=NET.role==='host',C=CHARS.find(c=>c.id===(NET.opp&&NET.opp.c))||CHARS[0];
+  P.x=host?170:330;P.face=host?1:-1;camX=clamp(250-VW/2,0,CAR_LEN-VW);
+  NAMES.peer=(NET.opp&&NET.opp.n)||'상대';
+  enemies=[mkPeer(C,host?330:170)];carN=1;banner=null;
+  state='count';stT=0;NET.goT=3;bgmOn=true;bgmMode=2;NET.lastRx=performance.now();pvpStatus();
+}
+function mkPeer(C,x){
+  const mx=C.hp;
+  return{type:'peer',boss:true,C,x,y:FLOOR,tx:x,ty:FLOOR,vx:0,vy:0,hp:mx,max:mx,hpLag:mx,w:20,h:56,face:x>250?-1:1,awake:true,dead:false,deadT:0,flash:0,st:'net',hurt:0,air:false,downT:0,shield:0,
+    s:{x,y:FLOOR,vx:0,face:x>250?-1:1,onG:true,atkT:0,combo:0,guard:false,guardT:1,dashT:0,spinT:0,rushT:0,plunge:false,castT:0,hurtT:0,parryT:0,walkT:0,slowT:0,m:{parry:0},hp:mx,max:mx},age:0};
+}
+function peerSnap(e,p){
+  const s=e.s;e.tx=p.x;e.ty=p.y;s.vx=p.vx;s.face=p.f;s.onG=!!p.g;s.atkT=p.a;s.combo=p.c;s.guard=!!p.gd;s.guardT=p.gt;s.dashT=p.d;s.spinT=p.sp;s.rushT=p.r;s.plunge=!!p.pl;s.castT=p.ca;s.hurtT=p.h;s.parryT=p.pa;s.walkT=p.w;
+  e.hp=p.hp;e.max=p.mx;e.face=p.f;e.age=0;
+}
+function updPeer(e,dt){
+  const s=e.s;e.age+=dt;e.flash-=dt;
+  const px=e.tx+s.vx*Math.min(e.age,.15);e.x+=(px-e.x)*Math.min(1,dt*18);e.y+=(e.ty-e.y)*Math.min(1,dt*18);
+  for(const k of['atkT','dashT','spinT','rushT','castT','hurtT','parryT'])if(s[k]>0)s[k]=Math.max(0,s[k]-dt);
+  if(s.guard)s.guardT+=dt;
+  e.hpLag+=(e.hp-e.hpLag)*Math.min(1,dt*3);s.x=e.x;s.y=e.y;e.air=!s.onG;
+  if(state==='play'||state==='count'){const d=P.x-e.x;if(Math.abs(d)<18&&P.y>FLOOR-30&&e.y>FLOOR-30&&P.dashT<=0&&P.rushT<=0){P.x=e.x+(d>=0?18:-18);P.x=clamp(P.x,14,CAR_LEN-24)}}
+}
+function peerFx(e,p){
+  const f=p.f,px=e.x,py=e.y;
+  if(p.k==='hero'){for(let i=0;i<4;i++)timers.push({t:i*.09,fn:()=>shots.push({kind:'wave',x:px+f*14,y:py-26+(i%2?-10:10),vx:f*(360+i*15),life:1.5,hit:new Set(enemies),dmg:0,r:12,hh:16,sz:1.25,hue:i%3})});
+    timers.push({t:.45,fn:()=>{shots.push({kind:'wave',x:px+f*14,y:py-26,vx:f*300,life:1.5,hit:new Set(enemies),dmg:0,r:24,hh:46,sz:3.2,hue:0});shake=7;sfx.wave()}});sfx.wave()}
+  else if(p.k==='king'){cuts.push({x0:px-f*130,y0:py-28,x1:px+f*14,y1:py-28,life:.45,max:.45,w:5});nz(.25,.35,3200,.8);shake=6}
+  else{ring(px,FLOOR-2,{r:10,v:200,life:.4,c:'#dfe6ea',w:3,flat:.3});shake=4}
+  addText(px,py-74,(e.C&&e.C.spName||'필살기')+'!',e.C?e.C.frame:'#ffd166',11,.9);
+}
+/* attacker side: my hit on the peer becomes a message; the victim decides the outcome */
+function netHit(e,base,dir,o={}){
+  if(state!=='play')return false;
+  const raw=!!o.raw,d=base*(raw?P.m.sp:CH.atk*P.m.atk)*PVP_K;
+  netSend({t:'hit',d:Math.round(d*10)/10,dir,kb:o.kb===undefined?140:o.kb,up:o.up||0,big:!!(o.big||base>=2),raw});
+  e.flash=.1;const hy=e.y-34;spark(e.x,hy,dir,o.big?'#ffd166':'#ffe9a8',o.big?12:7);ring(e.x-dir*4,hy,{c:'#fff',v:120,life:.22,w:2});sfx.hit(!!o.big);
+  shake=Math.max(shake,o.big?5:2.5);hs=Math.max(hs,o.big?.06:.03);
+  chain++;chainT=2.4;if(chain>maxChain)maxChain=chain;P.en=Math.min(100,P.en+(raw?.3:1.6));
+  return true;
+}
+/* victim side */
+function pvpHurt(p){
+  const dir=p.dir;
+  if(P.dashT>0||P.rushT>0||P.spinT>0||P.castT>0&&CH.id==='king'||P.inv>0)return;
+  if(P.guard&&P.face===-dir&&!p.raw){
+    if(P.guardT<.18+P.m.parry){P.parryT=.3;P.inv=.3;P.en=Math.min(100,P.en+6);hs=.1;shake=4;flashA=.25;spark(P.x+P.face*10,P.y-26,P.face,'#fff6c8',12);sfx.parry();netSend({t:'res',r:'parry',dir});return}
+    if(P.en>=CH.guardCost*.5){P.en-=CH.guardCost*.5;P.vx=dir*90;P.hurtT=.1;spark(P.x+P.face*10,P.y-26,P.face,'#a0cdff',6);sfx.block();addText(P.x,P.y-56,'막기','#a0cdff',9,.5);netSend({t:'res',r:'block',dir});return}
+    addText(P.x,P.y-64,'가드 브레이크','#ff8a75',9,.8);
+  }
+  const d=Math.max(1,Math.round(p.d*CH.def*P.m.def));
+  P.guard=false;P.hp-=d;P.inv=.06;P.hurtT=p.big?.32:.18;P.vx=dir*p.kb*.55;P.atkT=0;P.plunge=false;chain=0;
+  if(p.up>0||p.big){P.vy=-Math.max(160,(p.up||200)*.6);P.onG=false}
+  shake=p.big?7:4;hs=p.big?.05:.02;sfx.hurt();addText(P.x,P.y-56,'-'+d,'#ff8a75',11);spark(P.x,P.y-24,dir,'#ff8a75',6);flashA=Math.max(flashA,.1);
+  if(P.hp<=0){P.hp=0;netSend({t:'ko'});pvpOver('lose')}
+}
+function pvpOver(r){
+  if(state==='over'&&NET.res)return;
+  NET.res=r;NET.ready=false;state='over';stT=0;bgmOn=false;
+  if(r==='win'){sfx.win();flashA=.6;const e=enemies.find(q=>q.type==='peer');if(e){e.hp=0}}else if(r==='lose')sfx.over();
+  showPvpPanel();pvpStatus();
+}
+function pvpUpdate(raw){
+  if(!NET.room)return false;
+  const now=performance.now();
+  if(state==='lobby'||state==='over'){
+    if(now-NET.lastHi>2000){NET.lastHi=now;netSend({t:'hi'})}
+    if(state==='lobby'&&NET.role==='host'&&NET.ready&&NET.opp&&NET.opp.ready&&NET.opp.c){netSend({t:'go'});pvpBegin();return true}
+    if(state==='lobby'){stT+=0;updFx(raw);return true}
+    return false;
+  }
+  if(state==='count'){
+    NET.goT-=raw;NET.sendT-=raw;if(NET.sendT<=0){NET.sendT=1/15;sendSnap()}
+    for(const e of enemies)if(e.type==='peer')updPeer(e,raw);
+    const tx=clamp(P.x-VW*.42+P.face*10,0,CAR_LEN-VW);camX+=(tx-camX)*Math.min(1,raw*7);
+    if(NET.goT<=0){state='play';banner={t:1.2,s:'FIGHT!',s2:`VS ${NAMES.peer}`};sfx.boss()}
+    return true;
+  }
+  if(state==='play'){
+    NET.sendT-=raw;if(NET.sendT<=0){NET.sendT=1/15;sendSnap()}
+    if(P.castT>.7&&!NET.fxSent){NET.fxSent=true;netSend({t:'fx',k:CH.id,f:P.face})}else if(P.castT<=0&&P.spinT<=0)NET.fxSent=false;
+    if(P.spinT>.9&&!NET.fxSent){NET.fxSent=true;netSend({t:'fx',k:CH.id,f:P.face})}
+    if(now-NET.lastRx>7000)pvpOver('dc');
+  }
+  return false;
+}
+function sendSnap(){
+  const r2=v=>Math.round((v||0)*100)/100;
+  netSend({t:'s',x:Math.round(P.x*10)/10,y:Math.round(P.y*10)/10,vx:Math.round(P.vx),f:P.face,g:P.onG?1:0,a:r2(P.atkT),c:P.combo,gd:P.guard?1:0,gt:r2(P.guardT),d:r2(P.dashT),sp:r2(P.spinT),r:r2(P.rushT),pl:P.plunge?1:0,ca:r2(P.castT),h:r2(P.hurtT),pa:r2(P.parryT),w:r2(P.walkT),hp:Math.ceil(P.hp),mx:P.max});
+}
+/* ---- drawing ---- */
+function drawPeer(e,fx){
+  const sP=P,sC=CH,s=e.s;s.x=e.x;s.y=e.y;P=s;CH=e.C;
+  try{if(fx){ctx.fillStyle='rgba(255,70,60,.16)';ctx.beginPath();ctx.ellipse(e.x,e.y-28,16,32,0,0,7);ctx.fill()}
+    const pT=TINT;if(e.flash>0)TINT='#ffffff';drawPlayerBody(null,fx);TINT=pT}
+  finally{P=sP;CH=sC}
+  if(fx){ctx.font=`bold 6px ${BODY}`;ctx.textAlign='center';ctx.lineWidth=2;ctx.strokeStyle='rgba(10,16,13,.9)';const nm=NAMES.peer||'상대';ctx.strokeText(nm,e.x,e.y-68);ctx.fillStyle='#ff9a8a';ctx.fillText(nm,e.x,e.y-68)}
+}
+function drawLobby(){
+  dim(.8);
+  otxt('⚡ 실시간 1:1 결투',W/2,30,`18px ${DISP}`,'#f3d27a','center',4);
+  const me=CH,op=NET.opp&&NET.opp.c?CHARS.find(c=>c.id===NET.opp.c):null;
+  portrait(me.id,70,58,96,me.frame);txt((myName()||'나').slice(0,10),118,172,`12px ${DISP}`,'#ffffff','center');txt(me.name,118,186,`bold 8px ${BODY}`,LINE7HI,'center');
+  otxt('VS',W/2,122,`30px ${DISP}`,'#ff7a5c','center',5);
+  if(op){portrait(op.id,W-166,58,96,op.frame);txt(NET.opp.n,W-118,172,`12px ${DISP}`,'#ffffff','center');txt(op.name,W-118,186,`bold 8px ${BODY}`,LINE7HI,'center')}
+  else{ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(W-166,58,96,96);txt('?',W-118,120,`40px ${DISP}`,'#6f7d74','center');txt(NET.opp?NET.opp.n+' · 고르는 중':'친구 기다리는 중',W-118,178,`bold 8px ${BODY}`,'#9fb3a6','center')}
+  const msg=!NET.joined?'서버에 연결하는 중…':!NET.opp?'아래 [카톡으로 초대 보내기]로 친구를 부르세요':!NET.opp.ready?'친구가 캐릭터를 고르고 있어요':'곧 시작합니다!';
+  if(Math.floor(t*2)%2===0||NET.opp&&NET.opp.ready)center(msg,226,`bold 10px ${BODY}`,'#ffffff');
+}
+function drawCount(){
+  const n=Math.ceil(NET.goT);dim(.35);
+  otxt(n>0?String(n):'FIGHT!',W/2,H/2+14,`${n>0?60:46}px ${DISP}`,n>0?'#ffffff':'#ffd166','center',7);
+}
+function drawPvpEnd(){
+  dim(.8);const r=NET.res;
+  otxt(r==='win'?'승리!':r==='lose'?'패배…':'연결 끊김',W/2,84,`44px ${DISP}`,r==='win'?'#f3d27a':r==='lose'?'#ff7a5c':'#9fb3a6','center',6);
+  center(`VS ${NAMES.peer||'상대'}`,106,`bold 10px ${BODY}`,'#cfe0d6');
+  plate(W/2-120,116,240,46,r==='win'?'#e3b75c':'#ff7a5c');
+  txt('남은 체력',W/2-108,134,`bold 8px ${BODY}`,'#9fb3a6');txt(`${Math.max(0,Math.ceil(P.hp))} / ${P.max}`,W/2+108,135,`12px ${DISP}`,'#ffffff','right');
+  txt('최대 콤보',W/2-108,152,`bold 8px ${BODY}`,'#9fb3a6');txt(`${maxChain} HIT`,W/2+108,153,`bold 9px ${BODY}`,'#e3b75c','right');
+  center(NET.opp&&NET.opp.ready?'상대가 재대결을 원해요!':'아래 [재대결]을 누르면 바로 다시 붙어요',186,`bold 9px ${BODY}`,LINE7HI);
+}
+/* ---- page panel ---- */
+function showPvpPanel(){const p=document.getElementById('pvp');if(!p)return;p.hidden=false;const nm=document.getElementById('pvp-name2');if(nm&&!nm.value)nm.value=myName();pvpStatus();setTimeout(()=>{try{p.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}},60)}
+function pvpStatus(force){
+  const el=document.getElementById('pvp-status');if(!el)return;
+  const s=force||(!NET.joined?'서버에 연결하는 중…':state==='over'&&NET.res?(NET.res==='win'?'🏆 이겼어요! 재대결 하려면 [재대결]':NET.res==='lose'?'💀 졌어요… 복수하려면 [재대결]':'상대 연결이 끊겼어요'):!NET.opp?'방 열림 · 친구를 초대하세요 (방 번호 '+NET.room+')':state==='select'?'친구 입장! 내 캐릭터를 고르세요':!NET.opp.ready?`${NET.opp.n}님이 캐릭터를 고르는 중…`:state==='lobby'?'둘 다 준비 완료! 곧 시작':`${NET.opp.n}님과 결투 중`);
+  el.textContent=s;
+  const inv=document.getElementById('pvp-invite');if(inv)inv.hidden=!!NET.opp&&state!=='over';
+  const re=document.getElementById('pvp-again');if(re)re.hidden=!(state==='over'&&NET.res);
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('#pvp-new,#pvp-invite,#pvp-again,#pvp-change,#pvp-leave,#pvp-join');if(!b)return;e.preventDefault();
+  if(b.id==='pvp-new')pvpCreate();
+  else if(b.id==='pvp-invite'){readName('pvp-name2');shareText(`⚡ ${myName()||'친구'}의 지하철빌런특공대 실시간 결투 신청!`+String.fromCharCode(10)+'링크 누르고 캐릭터 고르면 바로 1:1 대결 (설치·로그인 없음) 👇',roomURL(),b)}
+  else if(b.id==='pvp-again'){NET.res=null;NET.ready=true;state='lobby';stT=0;netSend({t:'hi'});pvpStatus()}
+  else if(b.id==='pvp-change'){NET.ready=false;NET.res=null;netSend({t:'hi'});toSelect();pvpStatus()}
+  else if(b.id==='pvp-leave')pvpLeave();
+  else if(b.id==='pvp-join'){const r=new URLSearchParams(location.search).get('room');readName('inv-name');document.getElementById('inv').hidden=true;pvpJoin(r)}
+});
+addEventListener('pagehide',()=>{if(NET.room)netSend({t:'bye'})});
+(()=>{const q=new URLSearchParams(location.search),r=q.get('room');if(!r||!/^[A-Z0-9]{4,8}$/.test(r))return;
+  const h=(q.get('h')||'친구').slice(0,10);setTimeout(()=>{const d=document.getElementById('inv');if(!d)return;document.getElementById('inv-title').textContent=`${h}님이 실시간 결투를 신청했어요!`;const nm=document.getElementById('inv-name');if(nm&&!nm.value)nm.value=myName();d.hidden=false;hideChal&&hideChal()},300)})();
+
+(()=>{const n=myName();for(const id of['pvp-name','pvp-name2']){const el=document.getElementById(id);if(el&&!el.value)el.value=n}})();
 
 initRank();
 /* ===== loop ===== */
