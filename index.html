@@ -87,6 +87,17 @@ li.me{background:rgba(227,183,92,.08)}
 .brag-msg{margin:0;white-space:pre-line;font-size:13px;line-height:1.5;color:var(--fg);background:rgba(0,0,0,.25);border-radius:6px;padding:8px 10px}
 .brag-row{display:flex;gap:8px;flex-wrap:wrap}
 .brag-go{flex:1;font-size:15px;padding:11px 16px}
+.brag-name,.duel-name{font:600 14px var(--body);color:var(--fg);background:rgba(0,0,0,.3);border:1px solid var(--edge);border-radius:6px;padding:8px 10px;min-width:0}
+.chal{position:fixed;inset:0;z-index:50;background:rgba(4,8,6,.82);display:grid;place-items:center;padding:16px}
+.chal-card{width:100%;max-width:400px;background:var(--panel);border:2px solid #ff7a5c;border-radius:14px;padding:18px 16px;display:flex;flex-direction:column;gap:10px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.chal-face{width:84px;height:84px;border-radius:50%;object-fit:cover;margin:0 auto;border:3px solid #ff7a5c}
+.chal-title{margin:0;font:400 21px var(--display);color:#ffb9ad;text-wrap:balance}
+.chal-sub{margin:0;font-size:13px;color:var(--muted);font-weight:700}
+.chal-card .cta{width:100%;font-size:15px;padding:12px 14px;white-space:normal}
+.duelbox{width:100%;max-width:560px;background:var(--panel);border:2px solid var(--gold);border-radius:10px;padding:14px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px}
+.duel-res{margin:0;font:400 26px var(--display)}
+.duel-row{display:flex;gap:8px;flex-wrap:wrap}.duel-row .cta{flex:1}
+
 .actions{display:flex;gap:8px;justify-content:flex-end}
 @media (pointer:coarse){
   .pad{display:flex}
@@ -150,12 +161,20 @@ li.me{background:rgba(227,183,92,.08)}
   </div>
   <p class="keys">이동 <kbd>←</kbd> <kbd>→</kbd> · 대시 방향키 두 번 (또는 <kbd>Shift</kbd>) · 점프 <kbd>Space</kbd> · 베기 <kbd>Z</kbd> 연타 3단 콤보 · 막기 <kbd>X</kbd> 누르고 있기, 맞기 직전에 누르면 패링 · 특기 <kbd>C</kbd> · 아이템 <kbd>Q</kbd> 또는 <kbd>1</kbd>~<kbd>5</kbd></p>
   <p class="tip">휴대폰을 가로로 돌리면 화면이 커집니다</p>
+  <section class="duelbox" id="duelbox" hidden aria-label="결투 결과">
+    <p class="duel-res" id="duel-res"></p>
+    <p class="brag-msg" id="duel-msg"></p>
+    <input class="duel-name" id="duel-name" maxlength="10" placeholder="도전장에 표시할 내 이름" autocomplete="nickname">
+    <div class="duel-row"><button class="cta brag-go" type="button" id="duel-send">카톡으로 결과·도전장 보내기</button></div>
+    <div class="duel-row"><button class="cta ghost" type="button" id="duel-again">다시 결투</button><button class="cta ghost" type="button" id="duel-exit">일반 게임으로</button></div>
+  </section>
   <section class="rank" id="rank" hidden aria-labelledby="rank-title">
     <div class="rank-head"><h2 id="rank-title">TOP 10 랭킹</h2><span class="scope" id="rank-scope">불러오는 중</span></div>
     <div class="brag" id="brag" hidden>
       <div class="brag-top"><span class="brag-lbl">이번 기록</span><span class="brag-score" id="brag-score"></span></div>
       <p class="brag-sub" id="brag-sub"></p>
       <p class="brag-msg" id="brag-msg"></p>
+      <input class="brag-name" id="brag-name" maxlength="10" placeholder="도전장에 표시할 내 이름" autocomplete="nickname">
       <div class="brag-row"><button class="cta brag-go" type="button" id="brag-go">친구에게 도전장 보내기</button><button class="cta ghost" type="button" id="brag-new">멘트 바꾸기</button></div>
     </div>
     <form class="submit" id="rank-form" hidden>
@@ -166,6 +185,16 @@ li.me{background:rgba(227,183,92,.08)}
     <ol id="rank-list"></ol>
     <div class="actions"><button class="cta ghost" type="button" id="rank-close">닫기</button><button class="cta ghost" type="button" id="rank-share">점수 공유</button><button class="cta" type="button" id="rank-again">다시 하기</button></div>
   </section>
+</div>
+<div class="chal" id="chal" hidden role="dialog" aria-modal="true" aria-labelledby="chal-title">
+  <div class="chal-card">
+    <img class="chal-face" id="chal-face" alt="">
+    <h2 class="chal-title" id="chal-title"></h2>
+    <p class="chal-sub" id="chal-sub"></p>
+    <button class="cta" type="button" id="chal-duel"></button>
+    <button class="cta ghost" type="button" id="chal-score"></button>
+    <button class="cta ghost" type="button" id="chal-skip">그냥 혼자 할게요</button>
+  </div>
 </div>
 
 <script src="assets.js"></script>
@@ -194,18 +223,22 @@ function bragInfo(){
 function bragText(){
   const i=bragInfo();let t=BRAG[bragIdx](i);
   if(i.rank)t=`🏆 공개 랭킹 ${i.rank}위 등극! `+t;
-  return t+String.fromCharCode(10)+'👇 바로 도전하기 (설치·로그인 없음)';
+  if(TARGET)t=(i.raw>TARGET.s?`🏁 ${TARGET.n}님 ${TARGET.s.toLocaleString('ko-KR')}점 박살냄! `:`🏁 ${TARGET.n}님한테 ${(TARGET.s-i.raw).toLocaleString('ko-KR')}점 차로 졌다… 복수 간다. `)+t;
+  return t+String.fromCharCode(10)+'👇 눌러서 나랑 1:1 결투 or 점수 대결 (설치·로그인 없음)';
 }
 function updateBrag(){
   const b=document.getElementById('brag');if(!b)return;
   if(!lastRun||!lastRun.score){b.hidden=true;return}
   const i=bragInfo();b.hidden=false;
   document.getElementById('brag-score').textContent=i.sc+'점';
-  document.getElementById('brag-sub').textContent=(i.rank?`지금 기록이면 TOP 10 중 ${i.rank}위 · `:'')+i.stage;
+  document.getElementById('brag-sub').textContent=(TARGET?(i.raw>TARGET.s?`🏁 ${TARGET.n}님 점수 돌파! 승리 · `:`🏁 ${TARGET.n}님까지 ${(TARGET.s-i.raw).toLocaleString('ko-KR')}점 부족 · `):'')+(i.rank?`지금 기록이면 TOP 10 중 ${i.rank}위 · `:'')+i.stage;
+  const bn=document.getElementById('brag-name');if(bn&&!bn.value)bn.value=myName();
   document.getElementById('brag-msg').textContent=bragText();
 }
 async function shareGame(withScore,btn){
   const text=withScore&&lastRun&&lastRun.score?bragText():'7호선 빌런 소탕 액션 지하철빌런특공대 🚇'+String.fromCharCode(10)+'설치·로그인 없이 바로 플레이!';
+  if(withScore&&lastRun&&lastRun.score){readName('brag-name');return shareText(text,chalURL(lastRun.score),btn)}
+  if(!withScore)return shareText('🥊 지하철빌런특공대 도전장!'+String.fromCharCode(10)+'내 '+jo(CH.name,'이랑','랑')+' 1:1 결투 ㄱ? 점수 대결도 가능 (설치·로그인 없음)',chalURL(best),btn);
   try{if(navigator.share){await navigator.share({title:'지하철빌런특공대',text,url:SHARE_URL});return}}catch(e){if(e&&e.name==='AbortError')return}
   const all=text+String.fromCharCode(10)+SHARE_URL;let ok=false;
   try{await navigator.clipboard.writeText(all);ok=true}catch(e){}
@@ -738,7 +771,7 @@ function mk(type,x,elite){
   return{type,boss,elite:!!elite,tough:!!elite||type==='muscle',x,y:sp?HANGY:FLOOR,vx:0,vy:0,hp,max:hp,hpLag:hp,w:D.w*k,h:D.h*k,spd:D.spd,face:-1,awake:false,hurt:0,flash:0,cd:1,st:sp?'hang':'walk',stT:0,
     dashDir:-1,dashLen:.42,dead:false,deadT:0,throwT:0,walk:0,mvf:false,seed:Math.random()*10,combo:0,air:false,downT:0,slashes:0,hangHits:0,scd:rnd(5,8),gcd:rnd(2,4),shield:0,lvx:0,slam:false};
 }
-function startWith(i){sel=i;CH=CHARS[i];try{localStorage.setItem('danso-char',CH.id)}catch(e){}newGame()}
+function startWith(i){sel=i;CH=CHARS[i];try{localStorage.setItem('danso-char',CH.id)}catch(e){}if(MODE==='duel')startDuel();else{targetPassed=false;newGame()}}
 function toSelect(){if(typeof showRank==='function')showRank(false);state='select';stT=0;bgmOn=true;bgmMode=0}
 function newGame(){
   if(typeof showRank==='function')showRank(false);
@@ -1039,6 +1072,7 @@ function updSpider(e,dt,dx,adx,dir){
 }
 function startDash(e,dir,wind,len){e.st='wind';e.stT=wind;e.dashDir=dir;e.face=dir;e.dashLen=len;addText(e.x,e.y-e.h-8,'!','#ff6b55',e.boss?16:14,.5)}
 function updEnemy(e,dt){
+  if(e.type==='rival'){updRival(e,dt);return}
   e.hpLag+=(e.hp-e.hpLag)*Math.min(1,dt*3);
   if(e.dead){e.deadT-=dt;e.vy+=G*dt;e.x+=e.vx*dt;e.y+=e.vy*dt;if(e.y>FLOOR){e.y=FLOOR;e.vx*=.8;e.vy=0}return}
   const dx=P.x-e.x,adx=Math.abs(dx),dir=Math.sign(dx)||1;
@@ -1293,12 +1327,184 @@ function update(raw){
   enemies=enemies.filter(e=>!(e.dead&&e.deadT<=0));
   updShots(dt);if(state!=='play')return;
   updItems(dt);
-  if(!doorOpen&&enemies.length===0){
+  if(!doorOpen&&enemies.length===0&&MODE!=='duel'){
     gradeCar();
     doorOpen=true;sfx.chime();
     banner={t:2.6,s:car===10?'모든 칸 평정! 마지막 문이 열립니다':'내리실 문은 오른쪽입니다',s2:'오른쪽 끝 문으로 이동하세요'};
   }
   const tx=clamp(P.x-VW*.42+P.face*10,0,CAR_LEN-VW);camX+=(tx-camX)*Math.min(1,dt*7);
+}
+
+/* ===== 1:1 duel: fight a friend's character, driven by AI ===== */
+let MODE='run',RIVAL=null,TARGET=null,DUEL=null,targetPassed=false;
+NAMES.rival='라이벌';
+function rivalChar(){return CHARS.find(c=>c.id===(RIVAL&&RIVAL.c))||CHARS[2]}
+function setRival(r){RIVAL=r;const C=rivalChar();NAMES.rival=`${r.n||'친구'}의 ${C.name}`}
+function mkRival(x){
+  const C=rivalChar(),lv=clamp((RIVAL&&RIVAL.lv)||0,0,1),hp=Math.round(240*(1+lv*.5));
+  return{type:'rival',boss:true,elite:false,tough:false,C,lv,x,y:FLOOR,vx:0,vy:0,hp,max:hp,hpLag:hp,w:22,h:56,spd:150,face:-1,awake:true,
+    hurt:0,flash:0,cd:1.2,st:'walk',stT:0,dead:false,deadT:0,throwT:0,walk:0,mvf:false,seed:Math.random()*10,air:false,downT:0,shield:0,
+    scd:rnd(6,8),gcd:2,atkN:0,atkLen:3,hitDone:false,dashDir:-1,lastHp:hp,taken:0,spT:0,done:false,combo:0,slashes:0,hangHits:0};
+}
+function startDuel(){
+  if(typeof showRank==='function')showRank(false);
+  if(typeof hideDuelBox==='function')hideDuelBox();
+  MODE='duel';DUEL=null;car=1;score=0;chain=0;maxChain=0;runTime=0;grades=[];fever=0;feverLock=true;slow=0;hs=0;cutin=null;
+  P=mkPlayer();startCar();
+  enemies=[mkRival(330)];curBoss=null;carN=1;doorOpen=false;P.x=150;camX=60;
+  banner={t:3,s:'1:1 결투!',s2:`VS ${NAMES.rival}`};
+  state='play';stT=0;bgmOn=true;bgmMode=2;sfx.boss();
+}
+function duelEnd(win){
+  if(DUEL)return;
+  DUEL={win,time:runTime,hp:Math.max(0,Math.ceil(P.hp)),max:P.max,ch:CH.id};
+  state='over';stT=0;bgmOn=false;
+  if(win){sfx.win();flashA=.6}else sfx.over();
+  if(typeof onDuelEnd==='function')onDuelEnd(DUEL);
+}
+function rivalDmg(e,base){return base*e.C.atk*(1+e.lv*.3)}
+function rivalStrike(e,base,dir,range){
+  if(Math.abs(P.x-e.x)>range||P.y<FLOOR-62)return'miss';
+  const r=hurtP(rivalDmg(e,base),dir);
+  if(r==='parry'){e.st='stun';e.stT=1.3;e.vx=-dir*120;addText(e.x,e.y-70,'패링 당함!','#fff6c8',10,.8)}
+  return r;
+}
+function updRival(e,dt){
+  e.hpLag+=(e.hp-e.hpLag)*Math.min(1,dt*3);
+  if(e.dead){
+    e.deadT-=dt;e.vy+=G*dt;e.x+=e.vx*dt;e.y+=e.vy*dt;if(e.y>FLOOR){e.y=FLOOR;e.vx*=.8;e.vy=0}
+    if(!e.done&&e.deadT<1){e.done=true;duelEnd(true)}
+    return;
+  }
+  const C=e.C,dx=P.x-e.x,adx=Math.abs(dx),dir=Math.sign(dx)||1,reach=C.reach;
+  e.flash-=dt;e.cd-=dt;e.scd-=dt;e.gcd-=dt;e.mvf=false;
+  e.vy+=G*dt;e.y+=e.vy*dt;if(e.y>=FLOOR){e.y=FLOOR;e.vy=0;e.air=false}
+  // react to being hit: cancel wind-ups, sometimes guard or hop away
+  if(e.hp<e.lastHp){
+    e.taken++;
+    if((e.st==='atk'&&!e.hitDone||e.st==='dwind'||e.st==='spw')&&Math.random()<.35){e.st='walk';e.cd=.35}
+    if(e.taken>=3&&e.gcd<=0&&e.st!=='dash'){
+      e.taken=0;e.gcd=2.2;
+      if(Math.random()<.55){e.st='guard';e.stT=.7;e.face=dir}
+      else{e.st='hop';e.stT=.5;e.vy=-320;e.vx=-dir*180;e.face=dir}
+    }
+  }
+  e.lastHp=e.hp;
+  if(e.hurt>0&&e.st!=='dash'&&e.st!=='hop'){e.hurt-=dt;e.x+=e.vx*dt;e.vx*=Math.pow(.02,dt);clampE(e);return}
+  switch(e.st){
+    case'walk':{
+      e.face=dir;const want=reach*.85;
+      if(adx>want+8){e.x+=dir*e.spd*.85*dt;e.mvf=true;e.walk+=dt}
+      else if(adx<want-16){e.x-=dir*e.spd*.5*dt;e.mvf=true;e.walk-=dt}
+      if(P.atkT>0&&adx<reach+18&&e.gcd<=0&&Math.random()<dt*3){e.st='guard';e.stT=.55;e.gcd=2.4;break}
+      if(e.scd<=0&&adx<170){e.scd=rnd(7,10);e.st='spw';e.stT=.55;addText(e.x,e.y-72,C.spName+'!',C.frame,10,.9);sfx.boss();break}
+      if(e.cd<=0){
+        if(adx<want+20){e.st='atk';e.atkN=0;e.atkLen=Math.random()<.6?3:2;e.stT=.34;e.hitDone=false}
+        else if(adx>90&&adx<230&&Math.random()<.6){e.st='dwind';e.stT=.38;e.dashDir=dir;addText(e.x,e.y-66,'!','#ff6b55',16,.5)}
+        else e.cd=.25;
+      }
+      break;}
+    case'atk':{
+      e.stT-=dt;const el=.34-e.stT;
+      if(!e.hitDone&&el>=.17){e.hitDone=true;const third=e.atkN===2;rivalStrike(e,third?9:6,e.face,reach+(third?10:4));sfx.hit(third);if(e.st!=='atk')break}
+      if(e.stT<=0){
+        e.atkN++;
+        if(e.atkN<e.atkLen&&adx<reach+30){e.stT=.34;e.hitDone=false;e.face=dir;e.x+=e.face*6}
+        else{e.st='walk';e.cd=rnd(.6,1.2)}
+      }
+      break;}
+    case'dwind':e.stT-=dt;if(e.stT<=0){e.st='dash';e.stT=.32;e.hitDone=false;nz(.2,.18,500,.7)}break;
+    case'dash':{
+      e.stT-=dt;e.x+=e.dashDir*430*dt;if(Math.random()<.5)dust(e.x-e.dashDir*8,1,e.dashDir);
+      if(!e.hitDone&&Math.abs(P.x-e.x)<20){e.hitDone=true;rivalStrike(e,9,e.dashDir,24)}
+      if(e.stT<=0&&e.st==='dash'){e.st='walk';e.cd=rnd(.8,1.4);e.face=dir}
+      break;}
+    case'guard':e.stT-=dt;if(e.stT<=0||adx<26&&P.atkT<=0){e.st='atk';e.atkN=0;e.atkLen=2;e.stT=.34;e.hitDone=false;e.face=dir}break;
+    case'hop':e.stT-=dt;e.x+=e.vx*dt;if(e.stT<=0&&e.y>=FLOOR){e.st='walk';e.cd=.4}break;
+    case'stun':e.stT-=dt;e.x+=e.vx*dt;e.vx*=Math.pow(.02,dt);if(e.stT<=0){e.st='walk';e.cd=.5}break;
+    case'spw':
+      e.stT-=dt;
+      if(e.stT<=0){
+        if(C.id==='hero'){e.st='walk';e.cd=1;for(let i=0;i<3;i++)timers.push({t:i*.32,fn:()=>{if(e.dead)return;shots.push({kind:'gwave',x:e.x+e.face*14,y:FLOOR-10,vx:e.face*240,life:2.4});nz(.15,.25,1600,.8)}});addText(P.x,P.y-64,'점프!','#ffffff',9,.8)}
+        else if(C.id==='musa'){e.st='spin';e.stT=1;e.spT=0}
+        else{e.st='rush';e.stT=.42;e.dashDir=e.face;e.hitDone=false;shake=Math.max(shake,4)}
+      }
+      break;
+    case'spin':
+      e.stT-=dt;e.spT-=dt;e.x+=dir*60*dt;
+      if(e.spT<=0){e.spT=.2;rivalStrike(e,4,dir,44);sfx.hit(false)}
+      if(e.stT<=0&&e.st==='spin'){e.st='walk';e.cd=1}
+      break;
+    case'rush':
+      e.stT-=dt;e.x+=e.dashDir*620*dt;pillars.push({x:e.x,life:.25});
+      if(!e.hitDone&&Math.abs(P.x-e.x)<26){e.hitDone=true;rivalStrike(e,13,e.dashDir,30)}
+      if(e.stT<=0&&e.st==='rush'){e.st='walk';e.cd=1.2;e.face=dir}
+      break;
+  }
+  clampE(e);
+}
+function drawRival(e,o,fx){
+  const C=e.C,sx=1,sy=-37,piv=[sx,sy+3];
+  let a=C.idleA,len=C.L,hand=null;
+  if(fx&&!e.dead){ctx.fillStyle=`rgba(255,70,60,${.18+.08*Math.sin(t*6)})`;ctx.beginPath();ctx.ellipse(0,-28,16,32,0,0,7);ctx.fill()}
+  if(!e.dead&&e.air&&e.st!=='hop')ctx.rotate(-.5);
+  switch(e.st){
+    case'atk':{
+      const el=.34-e.stT,p=clamp((el-.08)/.14,0,1),q=1-Math.pow(1-p,3),kind=e.atkN===2?2:e.atkN%2;let a0;
+      if(kind===0){a0=-2.1;a=a0+(.9-a0)*q;o.lean=.08+.1*q}
+      else if(kind===1){a0=.9;a=a0+(-1.9-a0)*q;o.lean=.12-.08*q}
+      else{a0=a=-.05;len=C.L+10*q*(C.id==='king'?.5:1);o.lean=.22}
+      hand=kind<2?[piv[0]+Math.cos(a)*11,piv[1]+Math.sin(a)*11]:[sx+12+6*q,sy+5];
+      if(fx&&p>0&&p<1){ctx.lineCap='round';
+        if(kind<2){ctx.strokeStyle=C.swoosh;ctx.lineWidth=e.atkN>=2?10:7;ctx.beginPath();ctx.arc(piv[0],piv[1],len+10,Math.min(a0,a),Math.max(a0,a));ctx.stroke()}
+        else{ctx.strokeStyle=C.swoosh;ctx.lineWidth=2;for(let i=0;i<3;i++)L(sx+16,sy+1+i*4,sx+len+26,sy+1+i*4)}}
+      if(fx&&el<.1){ctx.fillStyle='rgba(255,90,70,.3)';ctx.beginPath();ctx.arc(10,-30,9,0,7);ctx.fill()}
+      break;}
+    case'dwind':case'spw':a=-.45;hand=[sx+4,sy+8];o.crouch=3;o.lean=-.12;
+      if(fx){ctx.fillStyle=e.st==='spw'?`rgba(255,214,110,${.25+.2*Math.sin(t*30)})`:'rgba(255,90,70,.25)';ctx.beginPath();ctx.ellipse(0,-30,20,38,0,0,7);ctx.fill()}
+      break;
+    case'dash':case'rush':a=-.05;len=C.L+8;hand=[sx+15,sy+4];o.backHand=[sx-10,sy+8];o.lean=.5;o.moving=true;o.ph=t*30;
+      if(fx){ctx.lineCap='round';ctx.strokeStyle=C.swoosh;ctx.lineWidth=e.st==='rush'?9:5;L(sx-46,sy+4,sx+len+26,sy+4)}
+      break;
+    case'spin':a=t*30;hand=[piv[0]+Math.cos(a)*11,piv[1]+Math.sin(a)*11];
+      if(fx){ctx.strokeStyle='rgba(225,233,238,.55)';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(0,-30,38,16,0,a,a+4.2);ctx.stroke()}
+      break;
+    case'guard':a=-Math.PI/2-.08;hand=[sx+8,sy+9];o.backHand=[sx+7,sy+14];o.crouch=1.6;break;
+    case'stun':o.crouch=4;o.lean=.4;break;
+    case'hop':o.air=true;o.lean=-.2;break;
+  }
+  if(e.hurt>0&&e.st==='walk')o.lean=-.3;
+  o.hand=hand;o.wpn={kind:C.weapon,a,len};
+  drawRig(C.id,o);
+  if(fx&&!e.dead){
+    if(e.st==='guard'){ctx.strokeStyle='rgba(255,140,120,.8)';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(4,-28,C.id==='king'?30:26,-1.1,1.1);ctx.stroke()}
+    if(e.st==='stun')for(let i=0;i<3;i++){const q=t*6+i*2.1;ell(Math.cos(q)*10+2,-62+Math.sin(q)*2.5,1.6,1.6,'#ffe08a',false)}
+    ctx.save();ctx.scale(e.face,1);ctx.font=`bold 6px ${BODY}`;ctx.textAlign='center';ctx.lineWidth=2;ctx.strokeStyle='rgba(10,16,13,.9)';
+    const nm=(RIVAL&&RIVAL.n)||'라이벌';ctx.strokeText(nm,0,-66);ctx.fillStyle='#ff9a8a';ctx.fillText(nm,0,-66);ctx.restore();
+  }
+}
+function drawDuelEnd(){
+  const d=DUEL||{win:false,time:runTime,hp:0,max:1};dim(.8);
+  otxt(d.win?'승리!':'패배…',W/2,82,`44px ${DISP}`,d.win?'#f3d27a':'#ff7a5c','center',6);
+  center(`VS ${NAMES.rival}`,104,`bold 10px ${BODY}`,'#cfe0d6');
+  plate(W/2-120,114,240,62,d.win?'#e3b75c':'#ff7a5c');
+  txt('내 캐릭터',W/2-108,132,`bold 8px ${BODY}`,'#9fb3a6');txt(CH.name,W/2+108,133,`12px ${DISP}`,'#ffffff','right');
+  txt('남은 체력',W/2-108,150,`bold 8px ${BODY}`,'#9fb3a6');txt(`${d.hp} / ${d.max}`,W/2+108,151,`12px ${DISP}`,d.win?'#7dea98':'#ff8a75','right');
+  txt('결투 시간',W/2-108,167,`bold 8px ${BODY}`,'#9fb3a6');txt(fmtTime(d.time),W/2+108,168,`bold 9px ${BODY}`,'#e3b75c','right');
+  center(d.win?'아래에서 결과를 친구에게 보내세요':'아래에서 복수 도전장을 보내세요',196,`bold 9px ${BODY}`,LINE7HI);
+  if(stT>.8&&Math.floor(t*2)%2===0)center('화면을 탭하면 다시 캐릭터 선택',216,`bold 9px ${BODY}`,'#ffffff');
+}
+function drawModeTag(){
+  const s=MODE==='duel'?`⚔ 1:1 결투 · VS ${NAMES.rival} · 내 캐릭터를 고르세요`:TARGET?`🏁 점수 대결 · ${TARGET.n}님의 ${Number(TARGET.s).toLocaleString('ko-KR')}점을 넘겨라`:'';
+  if(!s)return;ctx.fillStyle='rgba(120,20,16,.85)';ctx.fillRect(0,H-26,W,18);center(s,H-14,`bold 9px ${BODY}`,'#ffe1d8');
+}
+function drawTarget(){
+  if(!TARGET||MODE!=='run')return;
+  const ahead=score>TARGET.s;
+  plate(W-118,60,112,18,ahead?'#7dea98':'#ff7a5c');
+  txt(`${String(TARGET.n).slice(0,6)} ${Number(TARGET.s).toLocaleString('ko-KR')}`,W-112,72,`bold 7px ${BODY}`,'#cfe0d6');
+  txt(ahead?'역전!':`-${(TARGET.s-score).toLocaleString('ko-KR')}`,W-12,72,`bold 8px ${BODY}`,ahead?'#7dea98':'#ff8a75','right');
+  if(ahead&&!targetPassed){targetPassed=true;banner={t:2.4,s:`${TARGET.n}님 점수 돌파!`,s2:'이제 격차를 벌리세요'};sfx.fever()}
 }
 /* ===== render: world ===== */
 const WINS=[[186,79,115,61],[38,79,29,59],[89,79,27,59],[365,79,23,59],[410,79,23,59]];
@@ -1400,10 +1606,11 @@ function drawSpider(e,o,fx){
 function drawEnemyBody(e,fx){
   ctx.save();ctx.translate(e.x,e.y);
   if(e.dead){const a=clamp(e.deadT/(e.boss?1.6:.9),0,1);ctx.globalAlpha*=a;ctx.rotate(-(1-a)*1.3*Math.sign(e.vx||1))}
-  ctx.scale(e.face,1);if(e.boss)ctx.scale(BS,BS);else if(e.elite)ctx.scale(1.2,1.2);
+  ctx.scale(e.face,1);if(e.boss&&e.type!=='rival')ctx.scale(BS,BS);else if(e.elite)ctx.scale(1.2,1.2);
   const sx=1,sy=-37,o={ph:e.walk*10,moving:!!e.mvf,air:e.y<FLOOR-1,seed:e.seed,lean:0,crouch:0},pT=TINT;
   if(e.flash>0)TINT='#ffffff';
   if(e.type==='spider'){drawSpider(e,o,fx);TINT=pT;ctx.restore();return}
+  if(e.type==='rival'){drawRival(e,o,fx);TINT=pT;ctx.restore();return}
   if(!e.dead){if(e.downT>0){ctx.translate(0,-5);ctx.rotate(-1.42);o.air=false}else if(e.air)ctx.rotate(-.75)}
   if(e.st==='wind'||e.st==='yell'){o.crouch=3;o.lean=-.16;if(fx){ctx.fillStyle='rgba(255,90,70,.22)';ctx.beginPath();ctx.ellipse(0,-e.h/2,e.w/2+8,e.h/2+6,0,0,7);ctx.fill()}}
   if(e.st==='dash'){o.lean=.38;o.moving=true;o.ph=t*26;o.backHand=[sx-9,sy+10];if(fx){ctx.fillStyle='rgba(255,255,255,.5)';for(let i=0;i<4;i++)ctx.fillRect(-e.w/2-22-i*5,-e.h+12+i*e.h/5,14,1)}}
@@ -1783,8 +1990,8 @@ function draw(){
   ctx.save();if(shake>0)ctx.translate(rnd(-.5,.5)*shake,rnd(-.5,.5)*shake);drawWorld();ctx.restore();
   drawPost();
   if(state==='title'){drawTitle();return}
-  if(state==='select'){drawSelect();return}
-  hud();
+  if(state==='select'){drawSelect();drawModeTag();return}
+  hud();drawTarget();
   if(cutin)drawCutin();
   if(state==='intro')drawIntro();
   if(state==='upgrade')drawUpgrade();
@@ -1792,7 +1999,8 @@ function draw(){
     const a=transT<.6?transT/.6:1-(transT-.6)/.6;ctx.fillStyle=`rgba(0,0,0,${clamp(a,0,1)})`;ctx.fillRect(0,0,W,H);
     if(a>.5){ctx.globalAlpha=(a-.5)*2;center(swapped?(car>10?`무한 모드 ${car-10}번째 칸`:`${car}번째 칸 · ${STATIONS[car-1]}`):'다음 칸으로',H/2,`20px ${DISP}`,'#e3b75c');ctx.globalAlpha=1}
   }
-  if(state==='over'||state==='win'){
+  if((state==='over'||state==='win')&&MODE==='duel')drawDuelEnd();
+  else if(state==='over'||state==='win'){
     const endless=car>10;dim(.78);
     otxt(endless?'무한 모드 종료':'강제 하차',W/2,84,`40px ${DISP}`,endless?'#f3d27a':'#ff7a5c','center',6);
     center(endless?`열 칸 평정 후 무한 ${car-10}번째 칸에서 쓰러졌습니다`:`${car}번째 칸 · ${STATIONS[car-1]}역에서 쓰러졌습니다`,106,`bold 10px ${BODY}`,endless?LINE7HI:'#cfe0d6');
@@ -1848,6 +2056,7 @@ async function loadBoard(){
 async function initRank(){canWrite=true;await loadBoard();setInterval(()=>{if(!rankEl.hidden&&sbOn)loadBoard()},30000)}
 function showRank(on){if(on&&sbOn)loadBoard();rankEl.hidden=!on;document.body.classList.toggle('ranking',on);if(on)setTimeout(()=>{try{rankEl.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}},50)}
 function openRank(){
+  if(MODE==='duel'){duelEnd(false);return}
   lastRun={score,car,won:car>10};submitted=false;msg('');
   try{const n=localStorage.getItem('danso-name');if(n&&!$('#rank-name').value)$('#rank-name').value=n}catch(e){}
   renderRank();showRank(true);
@@ -1873,6 +2082,64 @@ $('#rank-form').addEventListener('submit',async e=>{
 $('#rk').addEventListener('click',()=>{if(rankEl.hidden){if(state!=='over'&&state!=='win')lastRun=null;msg('');renderRank();showRank(true)}else showRank(false)});
 $('#rank-close').addEventListener('click',()=>showRank(false));
 $('#rank-again').addEventListener('click',()=>{audio();toSelect()});
+
+/* ===== challenge links (public site) ===== */
+function b64e(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function b64d(s){try{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(decodeURIComponent(escape(atob(s))))}catch(e){return null}}
+function myName(){try{return localStorage.getItem('danso-name')||''}catch(e){return''}}
+function setMyName(n){try{localStorage.setItem('danso-name',n)}catch(e){}}
+function chalURL(sc){const n=myName()||'익명의 승객';return SHARE_URL+'?vs='+b64e({n:n.slice(0,10),c:CH.id,s:Math.max(0,Math.round(sc||best||0))})}
+const CHAL=(()=>{try{const v=new URLSearchParams(location.search).get('vs');if(!v)return null;const o=b64d(v);if(!o||!o.c)return null;
+  return{n:String(o.n||'친구').slice(0,10),c:['hero','musa','king'].includes(o.c)?o.c:'king',s:Math.max(0,Math.min(2000000,+o.s||0))}}catch(e){return null}})();
+function jo(w,a,b){w=String(w);const c=w.charCodeAt(w.length-1)-0xAC00;return w+(c>=0&&c<11172&&c%28?a:b)}
+function chName(id){return(CHARS.find(c=>c.id===id)||CHARS[0]).name}
+function enterDuel(){if(!CHAL)return;MODE='duel';setRival({n:CHAL.n,c:CHAL.c,lv:clamp(CHAL.s/15000,0,1)});TARGET=null;hideChal();audio();toSelect()}
+function enterScore(){if(!CHAL)return;MODE='run';RIVAL=null;TARGET={n:CHAL.n,s:CHAL.s};targetPassed=false;hideChal();audio();toSelect()}
+function leaveModes(){MODE='run';RIVAL=null;TARGET=null;DUEL=null;hideDuelBox();audio();toSelect()}
+function hideChal(){const d=document.getElementById('chal');if(d)d.hidden=true}
+function showChal(){
+  const d=document.getElementById('chal');if(!d||!CHAL)return;
+  document.getElementById('chal-title').textContent=`${CHAL.n}님의 도전장이 도착했습니다!`;
+  document.getElementById('chal-sub').textContent=`${chName(CHAL.c)} 사용`+(CHAL.s?` · ${CHAL.s.toLocaleString('ko-KR')}점`:'');
+  const im=document.getElementById('chal-face');if(im&&PORTRAITS[CHAL.c])im.src=PORTRAITS[CHAL.c];
+  document.getElementById('chal-duel').textContent=`⚔️ ${CHAL.n}의 ${jo(chName(CHAL.c),'과','와')} 1:1 결투`;
+  const sb=document.getElementById('chal-score');sb.hidden=!CHAL.s;sb.textContent=`🏁 ${CHAL.s.toLocaleString('ko-KR')}점 넘기기 대결`;
+  d.hidden=false;
+}
+function hideDuelBox(){const b=document.getElementById('duelbox');if(b)b.hidden=true}
+function duelText(d){
+  const me=CH.name,riv=NAMES.rival,tm=d.time<60?`${Math.max(1,Math.round(d.time))}초`:fmtTime(d.time);
+  return d.win
+    ?`⚔️ ${jo(riv,'을','를')} ${tm} 만에 쓰러뜨렸다! (체력 ${d.hp}/${d.max} 남음) 😎\n이번엔 내 ${jo(me,'이랑','랑')} 붙어볼래? 👇`
+    :`⚔️ ${riv}한테 졌다… 😭\n복수전이다. 내 ${jo(me,'으로','로')} 도전장 보낸다, 받아라! 👇`;
+}
+function onDuelEnd(d){
+  const b=document.getElementById('duelbox');if(!b)return;
+  document.getElementById('duel-res').textContent=d.win?'🏆 승리!':'💀 패배…';
+  document.getElementById('duel-res').style.color=d.win?'var(--gold)':'#ff8a75';
+  document.getElementById('duel-msg').textContent=duelText(d);
+  const nm=document.getElementById('duel-name');if(nm&&!nm.value)nm.value=myName();
+  b.hidden=false;setTimeout(()=>{try{b.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}},60);
+}
+async function shareText(text,url,btn){
+  try{if(navigator.share){await navigator.share({title:'지하철빌런특공대',text,url});return}}catch(e){if(e&&e.name==='AbortError')return}
+  const all=text+String.fromCharCode(10)+url;let ok=false;
+  try{await navigator.clipboard.writeText(all);ok=true}catch(e){}
+  if(!ok){try{const ta=document.createElement('textarea');ta.value=all;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove()}catch(e){}}
+  if(btn){const o=btn.textContent;btn.textContent=ok?'복사됨! 카톡에 붙여넣기':'복사 실패';setTimeout(()=>btn.textContent=o,2000)}
+}
+function readName(id){const el=document.getElementById(id);const n=el?el.value.replace(/\s+/g,' ').trim().slice(0,10):'';if(n)setMyName(n);return n}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('#chal-duel,#chal-score,#chal-skip,#duel-send,#duel-again,#duel-exit');if(!b)return;e.preventDefault();
+  if(b.id==='chal-duel')enterDuel();
+  else if(b.id==='chal-score')enterScore();
+  else if(b.id==='chal-skip'){hideChal();audio()}
+  else if(b.id==='duel-send'){readName('duel-name');shareText(duelText(DUEL),chalURL(best),b)}
+  else if(b.id==='duel-again'){hideDuelBox();audio();toSelect()}
+  else if(b.id==='duel-exit')leaveModes();
+});
+if(CHAL)setTimeout(showChal,300);
+
 initRank();
 /* ===== loop ===== */
 let last=performance.now();
