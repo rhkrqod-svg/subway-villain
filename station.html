@@ -28,6 +28,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--body);min-height:100
 #c{filter:contrast(1.07) saturate(1.16)}
 #spf{position:absolute;inset:0;pointer-events:none;opacity:0;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 55%,rgba(255,240,170,.55),rgba(255,190,40,.18) 45%,transparent 75%);transition:opacity .35s}#spf.on{opacity:1;transition:opacity .06s}#spf b{font:400 clamp(30px,9vw,92px) var(--disp);color:#fff6c8;letter-spacing:.06em;text-shadow:0 0 18px #ffb800,0 0 42px #ff8a00,0 5px 0 rgba(0,0,0,.6);transform:scale(.6);transition:transform .45s cubic-bezier(.2,1.6,.4,1)}#spf.on b{transform:scale(1)}#spf.boom{background:radial-gradient(ellipse at 50% 55%,rgba(255,255,255,.95),rgba(255,220,120,.5) 40%,rgba(255,150,30,.15) 75%)}
 #lb i{position:absolute;left:0;right:0;height:0;background:#000;transition:height .5s;pointer-events:none;z-index:2}#lb i:first-child{top:0}#lb i:last-child{bottom:0}#lb.on i{height:11%}
+#rot{position:absolute;inset:0;z-index:20;display:none;place-items:center;background:#0b0f0d;text-align:center;color:#fff}#rot b{display:block;font:400 64px var(--disp);color:#ffd23a;animation:rotS 1.6s ease-in-out infinite}#rot p{margin:10px 0 4px;font:700 18px var(--body)}#rot span{font:500 13px var(--body);color:#9aa7a0}@keyframes rotS{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(90deg)}}@media (orientation:portrait) and (pointer:coarse){#rot{display:grid}}
 #hurt{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;background:radial-gradient(ellipse at 50% 50%,transparent 45%,rgba(255,40,20,.55) 100%)}
 #mm{display:block;margin:6px 0 0 auto;width:clamp(120px,24vw,230px);height:auto;background:rgba(8,12,10,.6);border:1px solid rgba(255,255,255,.22);border-radius:4px}
 .chip{display:inline-grid;place-items:center;width:1.5em;height:1.5em;border-radius:50%;background:#2f86e0;border:2px solid #fff;font:400 .8em var(--disp);margin-right:.35em;font-style:normal;vertical-align:middle}
@@ -104,7 +105,7 @@ kbd{background:var(--panel);border:1px solid #2c3833;border-radius:5px;padding:1
 <div class="wrap">
   <div class="top"><span class="badge">7</span><h1 class="logo">지하철빌런특공대<small>오픈월드</small></h1><span class="sp"></span><button class="mini" id="galb" type="button" hidden>빌런 도감</button><button class="mini" id="itb" type="button">아이템</button><button class="mini" id="fs" type="button">전체화면</button><button class="mini" id="snd" type="button">소리 켬</button></div>
   <div id="stage">
-    <canvas id="c"></canvas><div id="vig"></div><div id="hurt"></div><div id="lb"><i></i><i></i></div><div id="spf"><b>단소 불기</b></div>
+    <canvas id="c"></canvas><div id="vig"></div><div id="hurt"></div><div id="rot"><div><b>⟳</b><p>휴대폰을 가로로 돌려 주세요</p><span>이 게임은 가로 화면에서만 플레이할 수 있어요</span></div></div><div id="lb"><i></i><i></i></div><div id="spf"><b>단소 불기</b></div>
     <div id="fl"></div>
     <div class="hud" id="hudL"><div class="nm"><span><i class="chip">단</i>단소히어로</span><b><span id="lvt">Lv.1</span> · <span id="hpt">120/120</span></b></div><div class="bar"><i id="hp"></i></div><div class="brow"><span class="bl">기<em id="kis"></em></span><div class="bar nob kib"><i id="ki"></i></div></div><div class="brow"><span class="bl">악명<em id="nos"></em></span><div class="bar nob"><i id="no"></i></div></div><div id="bag"></div></div>
     <div class="hud" id="hudR"><div id="score">0</div><div id="carl">건대입구역</div><canvas id="mm" width="240" height="44"></canvas><div id="mis"></div></div><div class="hud" id="boss" hidden><b id="bn"></b><div class="bar"><i id="bh"></i></div></div>
@@ -972,14 +973,16 @@ addEventListener('pagehide',()=>{if(gsT>0)gearFlush()});
 function gearCount(){return Object.values(P.eq||{}).filter(g=>g&&!(g.s==='danso'&&g.g===0&&!g.lv)).length+(P.gear||[]).length}
 function kName(){const m=sbUser&&sbUser.user_metadata||{};return m.name||m.full_name||m.nickname||m.preferred_username||'카카오 사용자'}
 function kakaoInit(){if(!PUB)return;const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
-  sc.onload=async()=>{try{sbc=window.supabase.createClient(SB_URL,SB_KEY);const {data}=await sbc.auth.getSession();sbUser=data&&data.session&&data.session.user||null;
+  sc.onload=async()=>{try{sbc=window.supabase.createClient(SB_URL,SB_KEY);
+    const qp=new URLSearchParams(location.search);if(qp.get('code')){history.replaceState(null,'',location.pathname);try{const tr=await fetch('https://kauth.kakao.com/oauth/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=utf-8'},body:new URLSearchParams({grant_type:'authorization_code',client_id:KAKAO_REST,redirect_uri:location.origin+location.pathname,code:qp.get('code')})}).then(r=>r.json());if(!tr.id_token)throw tr;const {data,error}=await sbc.auth.signInWithIdToken({provider:'kakao',token:tr.id_token});if(error)throw error;sbUser=data.user}catch(e){const m='카카오 로그인 실패: '+String(e&&(e.error_description||e.message||e.error)||e).slice(0,70);setTimeout(()=>rmsg(m),800);console.warn(m)}}const {data}=await sbc.auth.getSession();sbUser=data&&data.session&&data.session.user||null;
     sbc.auth.onAuthStateChange((_e,ses)=>{const was=!!sbUser;sbUser=ses&&ses.user||null;if(sbUser&&!was)cloudGear();loginUI()});if(sbUser)await cloudGear();}catch(e){}loginUI()};sc.onerror=()=>loginUI();document.head.appendChild(sc)}
 async function cloudGear(){if(!sbc||!sbUser)return;try{let pend=null;try{pend=JSON.parse(localStorage.getItem('danso3d-pending')||'null')}catch(e){}
   if(pend){localStorage.removeItem('danso3d-pending');await sbc.from('gear3d').upsert({user_id:sbUser.id,data:pend,updated_at:new Date().toISOString()});GS=pend}
   else{const {data}=await sbc.from('gear3d').select('data').eq('user_id',sbUser.id).maybeSingle();if(data&&data.data)GS=data.data}
   if(GS&&G.state!=='play'){P.gearInit=0}try{const n=kName();if(n&&!$('rname').value)$('rname').value=n.slice(0,10)}catch(e){}}catch(e){}}
 function kakaoLogin(){if(!sbc){rmsg('카카오 로그인을 준비하지 못했습니다. 잠시 후 다시 눌러 주세요');return}try{if(gearCount()>0&&P.gearInit)localStorage.setItem('danso3d-pending',JSON.stringify(gearPack()))}catch(e){}
-  sbc.auth.signInWithOAuth({provider:'kakao',options:{redirectTo:location.href.split('#')[0]}}).then(r=>{if(r&&r.error)rmsg('카카오 로그인 실패: '+String(r.error.message||r.error).slice(0,60))})}
+  const st=Math.random().toString(36).slice(2);try{sessionStorage.setItem('kst',st)}catch(e){}
+  location.href='https://kauth.kakao.com/oauth/authorize?'+new URLSearchParams({client_id:KAKAO_REST,redirect_uri:location.origin+location.pathname,response_type:'code',scope:'openid profile_nickname profile_image',state:st})}
 function loginUI(){const k=$('klog');if(!k)return;if(!PUB){k.hidden=true;return}k.hidden=false;const over=G.state==='over',n=gearCount();
   if(sbUser){$('klt').innerHTML='카카오 로그인: <b></b><br>장비와 강화가 계정에 저장되어 다음 판에도 그대로 이어집니다.';$('klt').querySelector('b').textContent=kName();$('klb').textContent='로그아웃';$('klb').className='out'}
   else{$('klt').innerHTML=over&&n>0?'이번 판에 모은 장비 <b>'+n+'개</b>와 강화, 이대로 사라지게 둘 건가요?<br>카카오로 로그인하면 <b>다음 판에도 그대로</b> 씁니다.<br>로그인하지 않으면 대나무 단소부터 다시 시작해요.':'카카오로 로그인하면<br>얻은 장비와 강화가 <b>다음 판에도 그대로</b> 이어집니다.';$('klb').textContent='카카오로 로그인';$('klb').className=''}}
@@ -1070,7 +1073,7 @@ stage.addEventListener('pointerdown',e=>{if(G.state!=='play')return;drag={id:e.p
 stage.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;camYaw-=(e.clientX-drag.x)*.0075;camPitch=clamp(camPitch+(e.clientY-drag.y)*.004,.08,.75);drag.x=e.clientX;drag.y=e.clientY});
 const dend=e=>{if(drag&&e.pointerId===drag.id)drag=null};stage.addEventListener('pointerup',dend);stage.addEventListener('pointercancel',dend);
 if(matchMedia('(pointer:coarse)').matches)$('touch').classList.add('on');
-function tapStart(){ac();if(G.state==='title'||G.state==='over'&&G.t-G.overT>.8)newGame()}
+function tapStart(){ac();if(G.state==='title'||G.state==='over'&&G.t-G.overT>.8){if(!document.fullscreenElement&&!stage.classList.contains('full'))fsToggle();newGame()}}
 $('ov').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();tapStart()});
 $('bag').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const d=e.target.closest('.sl');if(d)useItem(+d.dataset.i)});
 $('itb').addEventListener('click',()=>{$('itg').hidden=!$('itg').hidden});$('itx').addEventListener('click',()=>{$('itg').hidden=true});$('itg').addEventListener('pointerdown',e=>e.stopPropagation());
@@ -1239,8 +1242,10 @@ function syncRig(c,dt){
   applyPose(r,poseOf(c,G),dt);
 }
 const camPos=new T.Vector3(0,2.4,0),camTgt=new T.Vector3(4,1.3,0);let last=performance.now();
+const ROTQ=window.matchMedia?matchMedia('(orientation:portrait) and (pointer:coarse)'):null;
 function frame(now){requestAnimationFrame(frame);const raw=Math.min(.05,(now-last)/1000);last=now;tick(raw)}
 function tick(raw){
+  if(G.state==='play'&&ROTQ&&ROTQ.matches)return;
   if(G.pause){renderer.render(scene,cam);return}
   G.bl=Math.min(5,1+(G.wave||1));
   G.t+=raw;if(G.zone==='plat'&&Math.random()<raw*2.5){const v=props.find(q=>q.brk&&Math.random()<.5);if(v){spark(v.x+rnd(-.3,.3),rnd(.8,1.6),v.z-.45,4,0xbfe9ff,4);if(Math.random()<.4)dust(v.x,v.z-.3,2)}}if(gsT>0){gsT-=raw;if(gsT<=0)gearFlush()}if(dT>0){dT-=raw;if(dT<=0)dNext()}
@@ -1328,7 +1333,7 @@ function rRender(){
   $('rscope').textContent=rlocal?'이 기기에만 저장됨':'모두가 보는 공유 랭킹';
   $('rform').hidden=!(rlast&&rlast.score>0&&!rlast.saved);
 }
-const SB_URL='https://ydukicaupmqwgcktkgvc.supabase.co',SB_KEY='sb_publishable_pDDOWXyNQvukpAj2hutYXA_G-eeEDLR';let rsb=false;
+const KAKAO_REST='9eaac1523d5582dca4e1e91efdf9dce1',SB_URL='https://ydukicaupmqwgcktkgvc.supabase.co',SB_KEY='sb_publishable_pDDOWXyNQvukpAj2hutYXA_G-eeEDLR';let rsb=false;
 function sbH(j){const h={apikey:SB_KEY};if(j){h['Content-Type']='application/json';h.Prefer='return=minimal'}return h}
 async function sbLoad(){const r=await fetch(SB_URL+'/rest/v1/scores3d?select=name,score,station,lv,created_at&order=score.desc,created_at.asc&limit=50',{headers:sbH()});if(!r.ok)throw{code:'http '+r.status};rboard=(await r.json()).map(x=>({name:x.name,score:x.score,station:x.station,lv:x.lv,at:Date.parse(x.created_at)||0}));rRender()}
 async function rInit(){
