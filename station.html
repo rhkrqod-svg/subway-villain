@@ -956,12 +956,12 @@ const GB={danso:[{n:'대나무 단소',atk:.06},{n:'흑단 단소',atk:.07},{n:'
   shoe:[{n:'구두',spd:.03,hp:5,def:.01},{n:'러닝화',spd:.05,hp:6,def:.012},{n:'등산화',spd:.035,hp:7,def:.014,firm:1,t:'맞아도 덜 밀려남'},{n:'에어 운동화',spd:.06,hp:8,def:.016},{n:'축지법 고무신',spd:.06,hp:9,def:.018,firm:1,t:'맞아도 덜 밀려남'}],
   acc:[{n:'교통카드',score:.1},{n:'염주',ki:.12},{n:'선글라스',crit:.05,t:'치명타 피해 증가'},{n:'골드 정기권',score:.1,ki:.06},{n:'명인의 노리개',crit:.04,atk:.03,ki:.06,t:'치명타 피해 증가'}]};
 const SN={atk:['공격력',1],hp:['최대 체력',0],def:['받는 피해',1,'-'],spd:['이동 속도',1],score:['점수',1],ki:['기 충전',1],crit:['치명타 확률',1],noto:['악명 증가',1,'-'],bullet:['총알·폭발 피해',1,'-']};
-const MAT={tok:{e:'🪙',n:'지하철 토큰',c:0xc9a24a,d:'강화 1회에 1개 사용 · 빌런 6%, 보스 2~4개'},gold:{e:'🌟',n:'황금 토큰',c:0xffd23a,d:'강화 성공률 +15% · 보스 10%'},charm:{e:'🧧',n:'보호 부적',c:0xf0e070,d:'강화 중 파괴를 1회 막음 · 보스 15%'}};
-const RATE=[100,100,100,85,75,65,57,50,42,35],BRK=[0,0,0,0,0,.13,.19,.25,.36,.46];
+const MAT={tok:{e:'🪙',n:'지하철 토큰',c:0xc9a24a,d:'강화 1회에 1~6개 사용(높은 단계일수록 많이) · 빌런 6%, 보스 2~4개'},gold:{e:'🌟',n:'황금 토큰',c:0xffd23a,d:'강화 성공률 +15% · 보스 10%'},charm:{e:'🧧',n:'보호 부적',c:0xf0e070,d:'강화 중 파괴를 1회 막음 · 보스 15%'}};
+const TOK=[1,1,1,2,2,3,3,4,5,6],RATE=[100,100,100,85,75,65,57,50,42,35],BRK=[0,0,0,0,0,.13,.19,.25,.36,.46];
 let gid=1;P.S={};P.eq={};P.gear=[];P.mat={tok:0,gold:0,charm:0};
 const hexs=c=>'#'+c.toString(16).padStart(6,'0');
-const spM=g=>1.3+.1*g.g+.035*g.lv,firmK=g=>Math.max(.12,.5-.06*g.g-.015*g.lv),critM=g=>1.6+.1*g.g+.035*g.lv;
-const upMul=lv=>lv<=5?1+.08*lv:1.4+.14*(lv-5);
+const spM=g=>1.3+.1*g.g+.25*(upMul(g.lv)-1),firmK=g=>Math.max(.1,.5-.06*g.g-.12*(upMul(g.lv)-1)),critM=g=>1.6+.1*g.g+.25*(upMul(g.lv)-1);
+const UPT=[1,1.08,1.18,1.3,1.44,1.6,1.8,2.04,2.32,2.64,3],upMul=lv=>UPT[Math.max(0,Math.min(10,lv|0))];
 function gVal(g,k){return (GB[g.s][g.b][k]||0)*GR[g.g].m*upMul(g.lv)}
 function gName(g){return GB[g.s][g.b].n+(g.lv?' +'+g.lv:'')+' ('+GR[g.g].n+')'}
 function gDesc(g){const b=GB[g.s][g.b],t=[],g0=Object.assign({},g,{lv:0}),U=g.lv>0,pl=(a,c,f)=>U&&Math.abs(c-a)>1e-9?'<em class="up">(+'+f(c-a)+')</em>':'';for(const k in SN)if(b[k]){const v=gVal(g,k),v0=gVal(g0,k),q=SN[k],f=q[1]?(x=>Math.round(x*100)+'%'):(x=>Math.round(x));t.push(q[0]+' '+(q[2]||'+')+f(v0)+pl(v0,v,f))}if(b.sp)t.push('필살기 피해 x'+spM(g0).toFixed(2)+pl(spM(g0),spM(g),x=>x.toFixed(2)));else if(b.firm)t.push('밀려나는 거리 -'+Math.round((1-firmK(g0))*100)+'%'+pl(1-firmK(g0),1-firmK(g),x=>Math.round(x*100)+'%'));else if(b.crit)t.push('치명타 피해 x'+critM(g0).toFixed(2)+pl(critM(g0),critM(g),x=>x.toFixed(2)));else if(b.t)t.push(b.t);if(g.s==='danso'&&g.lv>=7)t.push(g.lv>=10?'빛나는 단소 · 공격마다 음파':'빛나는 단소');return t.join(' · ')}
@@ -1026,8 +1026,8 @@ function findGear(id){for(const k in P.eq)if(P.eq[k]&&P.eq[k].id===id)return[P.e
 function eqGear(id){const i=P.gear.findIndex(q=>q.id===id);if(i<0)return;const g=P.gear[i];P.gear.splice(i,1);if(P.eq[g.s])P.gear.push(P.eq[g.s]);P.eq[g.s]=g;recalc();sfx.chime()}
 function unGear(k){if(k==='danso'||!P.eq[k]||P.gear.length>=12)return;P.gear.push(P.eq[k]);P.eq[k]=null;recalc()}
 function scrapGear(id){const i=P.gear.findIndex(q=>q.id===id);if(i<0)return;const g=P.gear[i];P.gear.splice(i,1);const n=g.g+1+Math.floor(g.lv/3);P.mat.tok+=n;gearSave();G.upMsg='분해해서 토큰 '+n+'개를 얻었습니다.';sfx.block()}
-function doUp(){const [g,slot]=findGear(G.upSel);if(!g){G.upMsg='강화할 장비를 고르세요.';return}if(g.lv>=10){G.upMsg='이미 최고 단계(+10)입니다.';return}if(P.mat.tok<1){G.upMsg='지하철 토큰이 부족합니다.';return}
-  P.mat.tok--;let rate=RATE[g.lv];if(G.useGold&&P.mat.gold>0&&rate<100){P.mat.gold--;rate=Math.min(100,rate+15)}
+function doUp(){const [g,slot]=findGear(G.upSel);if(!g){G.upMsg='강화할 장비를 고르세요.';return}if(g.lv>=10){G.upMsg='이미 최고 단계(+10)입니다.';return}const tc=TOK[g.lv]||1;if(P.mat.tok<tc){G.upMsg='지하철 토큰이 부족합니다. (+'+(g.lv+1)+' 강화에 '+tc+'개 필요)';return}
+  P.mat.tok-=tc;let rate=RATE[g.lv];if(G.useGold&&P.mat.gold>0&&rate<100){P.mat.gold--;rate=Math.min(100,rate+15)}
   if(Math.random()*100<rate){g.lv++;G.upMsg='강화 성공! '+gName(g);sfx.chime();tone(880,.12,'triangle',.1,1320);if(g.lv>=7)G.upMsg+=' · 단소가 빛나기 시작합니다'.slice(0,g.s==='danso'&&g.lv===7?99:0)}
   else{const lv=g.lv;if(Math.random()<BRK[lv]){if(G.useCharm&&P.mat.charm>0){P.mat.charm--;g.lv--;G.upMsg='파괴될 뻔했지만 보호 부적이 막아 줬습니다. ('+gName(g)+')';sfx.block()}
       else{if(slot){P.eq[slot]=null;if(slot==='danso')P.eq.danso={id:gid++,s:'danso',b:0,g:0,lv:0}}else P.gear.splice(P.gear.indexOf(g),1);G.upSel=0;G.upMsg='쨍그랑! '+gName(g)+'이(가) 부서졌습니다… 구두수선 할아버지: "…미안허이."';noise(.35,.3,3200);tone(1900,.25,'triangle',.12,500)}}
@@ -1045,7 +1045,7 @@ function drawUpTab(){let h='<h3>구두수선 · 강화</h3>';const all=SLOTS.map
   for(const g of all)h+=gRow(g,'<button type="button" data-pk="'+g.id+'">'+(G.upSel===g.id?'선택됨':'선택')+'</button>',G.upSel===g.id);
   const [g]=findGear(G.upSel);h+=matLine();if(g)h+='<p class="ui">'+gName(g)+' · '+upInfo(g)+'</p>';
   h+='<div class="uo"><button type="button" data-opt="gold" class="'+(G.useGold?'on':'')+'">🌟 황금 토큰 사용 '+(G.useGold?'켬':'끔')+'</button><button type="button" data-opt="charm" class="'+(G.useCharm?'on':'')+'">🧧 보호 부적 사용 '+(G.useCharm?'켬':'끔')+'</button></div>';
-  h+='<button type="button" data-up="1" class="upb">강화하기 (토큰 1개)</button>'+(G.upMsg?'<p class="um">'+G.upMsg+'</p>':'');return h}
+  h+='<button type="button" data-up="1" class="upb">강화하기 (토큰 '+(()=>{const [q]=findGear(G.upSel);return q?TOK[q.lv]||1:1})()+'개)</button>'+(G.upMsg?'<p class="um">'+G.upMsg+'</p>':'');return h}
 function randItem(k){const ks=Object.keys(ITEMS);let r=Math.random()*ks.reduce((a,t)=>a+ITEMS[t][k],0);for(const t of ks){r-=ITEMS[t][k];if(r<=0)return t}return'drink'}
 const hx6=c=>'#'+c.toString(16).padStart(6,'0');
 function itemMesh(type,gc,gg){const g=new T.Group();
