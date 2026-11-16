@@ -1163,7 +1163,7 @@ function hurtPlayer(e,d,ub){
   const dx=e.x-P.x,dz=e.z-P.z,l=Math.hypot(dx,dz)||1,pf=fwd(P.ang),facing=(pf[0]*dx+pf[1]*dz)/l>.25,mx=P.x+dx/l*.4,mz=P.z+dz/l*.4;
   if(P.guard&&facing&&!ub){
     if(P.guardT<.2){mEv('parry',1);addKi(15);e.slam=false;e.st='stun';e.stT=e.boss?.8:1.5;e.kx=e.kz=0;e.x=P.x+dx/l*.95;e.z=P.z+dz/l*.95;e.ang=Math.atan2(-dx,-dz);e.bang.visible=false;P.inv=.3;G.hitstop=.12;G.shake=.1;spark(mx,1.2,mz,16,0xfff6c8,6);ringFx(mx,1.2,mz,0xfff6c8,1.6);ftext(P.x,2,P.z,'패링!','sys');sfx.parry();addScore(50);return}
-    P.vx=-dx/l*2.5;P.vz=-dz/l*2.5;P.inv=.15;spark(mx,1.2,mz,6,0xa0cdff,3.5);ftext(P.x,1.95,P.z,'막기','sys');sfx.block();G.shake=.04;return;
+    P.vx=-dx/l*2.5;P.vz=-dz/l*2.5;P.inv=.15;spark(mx,1.2,mz,6,0xa0cdff,3.5);if(e.boss&&e.rig&&!e.robo&&e.st!=='dead'){e.st='stun';e.stT=.5;e.slam=false;e.kx=e.kz=0;e.bang.visible=false;ftext(e.x,2.6,e.z,'막기 성공! 보스 경직','sys')}else ftext(P.x,1.95,P.z,'막기','sys');sfx.block();G.shake=.04;return;
   }
   d=Math.max(1,Math.round(d*(1-(P.S.def||0))));if(e.rig)dropCarry();P.hp-=d;for(const m of G.ms||[])if(m.t==='kill'&&!m.done&&m.cur){m.cur=0;drawMis()}G.lost=(G.lost||0)+d;P.hurtT=.34;P.inv=.85;P.vx=-dx/l*4.6*(P.S.firm||1);P.vz=-dz/l*4.6*(P.S.firm||1);P.vy=2.6;P.onG=false;P.atk=0;P.dashT=0;P.guard=false;G.combo=0;$('combo').style.opacity=0;
   G.shake=.16;G.hitstop=.06;sfx.hurt();{const h=$('hurt');h.style.opacity=1;setTimeout(()=>h.style.opacity=0,140)}ftext(P.x,2,P.z,'-'+d,'hurt');spark(P.x,1.1,P.z,8,0xff8a75,4);hud();
@@ -1182,6 +1182,7 @@ function updPlayer(dt){
   if(P.dead)ix=iy=0;
   const cf=fwd(camYaw),mx=cf[0]*iy-cf[1]*ix,mz=cf[1]*iy+cf[0]*ix,mv=Math.hypot(mx,mz),mang=mv>.12?Math.atan2(mx,mz):null;
   if(!P.dead){
+    if(K.guard&&P.onG&&P.atk>0&&!(P.cast>0)&&P.hurtT<=0){P.atk=0;P.buf=0;P.anim=''}
     const busy=P.atk>0||P.hurtT>0||P.dashT>0;
     if(K.guard&&P.onG&&!busy){if(!P.guard)P.guardT=0;P.guard=true;P.guardT+=dt}else P.guard=false;
     if(pressed.dash&&P.dashCd<=0&&P.hurtT<=0&&!P.guard){P.dashT=.3;P.sinceDash=0;P.dashCd=.65;P.inv=Math.max(P.inv,.36);if(mang!==null)P.ang=mang;P.atk=0;dust(P.x,P.z,5);sfx.dash()}
