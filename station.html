@@ -336,7 +336,7 @@ function poseOf(c,G){
   else if(a==='down'||a==='dead'){p.rate=11;p.lean=-1.5;p.y=.1;p.spine=[-.1];p.head=[-.2];p.lArm=[-.4,0,1.2];p.rArm=[-.4,0,-1.2];p.lFore=[-.5];p.rFore=[-.5];p.lThigh=[-.3,0,.2];p.rThigh=[-.1,0,-.2];p.lShin=[.5];p.rShin=[.2]}
   else stance();
   if(k==='npc'&&c.cower&&a!=='run'){p.lArm=[-1.7,0,.45];p.rArm=[-1.7,0,-.45];p.lFore=[-1.5];p.rFore=[-1.5];p.spine=[-.18];p.head=[.15]}
-  if(c.carry){p.lArm=[-2.9,0,.25];p.rArm=[-2.9,0,-.25];p.lFore=[-.25];p.rFore=[-.25];p.wpn=[.2]}
+  if(c.carry){if(c.guard){p.lArm=[-1.45,0,.4];p.rArm=[-1.45,0,-.4];p.lFore=[-.7];p.rFore=[-.7];p.wpn=[.2]}else{p.lArm=[-2.9,0,.25];p.rArm=[-2.9,0,-.25];p.lFore=[-.25];p.rFore=[-.25];p.wpn=[.2]}}
   if(c.tier===2&&G.t>(c.gbT||0)){if(a==='walk'||a==='idle'||a==='wind'||a==='cool'){p.lArm=[-1.15,0,-.35];p.lFore=[-1.0];p.chest=[0,-.25]}
     if(a==='strike'&&c.atkKind==='push'){p.lArm=[-1.5,0,-.2];p.lFore=[-.35];p.rArm=[.5,0,-.25];p.rFore=[-.8];p.chest=[0,-.4]}}
   if(c.grab){p.lArm=[-2.3,0,.35];p.lFore=[-1.3];p.rArm=[-2.3,0,-.35];p.rFore=[-1.3];p.head=[.25,0];p.spine=[.1]}
@@ -1165,7 +1165,7 @@ function hurtPlayer(e,d,ub){
     if(P.guardT<.2){mEv('parry',1);addKi(15);e.slam=false;e.st='stun';e.stT=e.boss?.8:1.5;e.kx=e.kz=0;e.x=P.x+dx/l*.95;e.z=P.z+dz/l*.95;e.ang=Math.atan2(-dx,-dz);e.bang.visible=false;P.inv=.3;G.hitstop=.12;G.shake=.1;spark(mx,1.2,mz,16,0xfff6c8,6);ringFx(mx,1.2,mz,0xfff6c8,1.6);ftext(P.x,2,P.z,'패링!','sys');sfx.parry();addScore(50);return}
     P.vx=-dx/l*2.5;P.vz=-dz/l*2.5;P.inv=.15;spark(mx,1.2,mz,6,0xa0cdff,3.5);ftext(P.x,1.95,P.z,'막기','sys');sfx.block();G.shake=.04;return;
   }
-  d=Math.max(1,Math.round(d*(1-(P.S.def||0))));dropCarry();P.hp-=d;for(const m of G.ms||[])if(m.t==='kill'&&!m.done&&m.cur){m.cur=0;drawMis()}G.lost=(G.lost||0)+d;P.hurtT=.34;P.inv=.85;P.vx=-dx/l*4.6*(P.S.firm||1);P.vz=-dz/l*4.6*(P.S.firm||1);P.vy=2.6;P.onG=false;P.atk=0;P.dashT=0;P.guard=false;G.combo=0;$('combo').style.opacity=0;
+  d=Math.max(1,Math.round(d*(1-(P.S.def||0))));if(e.rig)dropCarry();P.hp-=d;for(const m of G.ms||[])if(m.t==='kill'&&!m.done&&m.cur){m.cur=0;drawMis()}G.lost=(G.lost||0)+d;P.hurtT=.34;P.inv=.85;P.vx=-dx/l*4.6*(P.S.firm||1);P.vz=-dz/l*4.6*(P.S.firm||1);P.vy=2.6;P.onG=false;P.atk=0;P.dashT=0;P.guard=false;G.combo=0;$('combo').style.opacity=0;
   G.shake=.16;G.hitstop=.06;sfx.hurt();{const h=$('hurt');h.style.opacity=1;setTimeout(()=>h.style.opacity=0,140)}ftext(P.x,2,P.z,'-'+d,'hurt');spark(P.x,1.1,P.z,8,0xff8a75,4);hud();
   if(P.hp<=0){P.hp=0;P.dead=true;P.vy=3.4;hud();sfx.over();G.state='over';G.overT=G.t;setTimeout(()=>{if(G.state!=='over')return;$('ovt').textContent='GAME OVER';$('ovs').textContent=G.wave+'번째 열차 · '+G.score.toLocaleString('ko-KR')+'점';$('ovb').textContent='다시 도전';$('ov').hidden=false;rOpen()},1300)}
 }
@@ -1336,7 +1336,7 @@ function tick(raw){
   if(G.bannerT>0){G.bannerT-=raw;if(G.bannerT<=0)$('banner').style.opacity=0}
   for(const k in pressed)pressed[k]=false;
   for(const n of npcs)syncRig(n,dt);for(const a of allies)if(a&&a.st!=='off')syncRig(a,dt);
-  if(P.carry){const m=P.carry.cm||P.carry.ms[0];m.position.set(P.x,P.y+2.02,P.z);m.rotation.set(0,P.ang+(P.carry.cm?PI/2:0),0)}
+  if(P.carry){const m=P.carry.cm||P.carry.ms[0];if(P.guard){const f=fwd(P.ang);m.position.set(P.x+f[0]*.62,P.y+1.15,P.z+f[1]*.62)}else m.position.set(P.x,P.y+2.02,P.z);m.rotation.set(0,P.ang+(P.carry.cm?PI/2:0),0)}
   setFlash(P.rig,P.shield>0?.2+.08*sin(G.t*12):0,P.pow>0?.12+.06*sin(G.t*10):0);
   syncRig(P,dt);P.rig.root.visible=G.state!=='gallery'&&(P.dead||P.inv<=0||P.hurtT>0||P.shield>0||P.cast>0||Math.floor(G.t*22)%2===0);
   for(const e of enemies){syncRig(e,dt);e.bar.position.set(e.x,e.y+2.0*e.rig.root.scale.y,e.z);e.bar.quaternion.copy(cam.quaternion);e.fg.scale.x=clamp(e.hp/e.max,0,1);e.bang.position.set(e.x,e.y+2.2,e.z);const s=.42+.06*sin(G.t*24);e.bang.scale.set(s,s,1)}
