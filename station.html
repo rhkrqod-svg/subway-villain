@@ -509,7 +509,7 @@ const AT={5:{d:.34,h:.09,dmg:14,r:1.45},4:{d:.38,h:.08,dmg:18,r:1.9,kd:1},
   1:{d:.3,h:.1,dmg:10,r:1.35,anim:'atk1'},2:{d:.3,h:.1,dmg:12,r:1.35,anim:'atk2'},11:{d:.27,h:.09,dmg:11,r:1.65,fx:1,anim:'atk4'},12:{d:.36,h:.13,dmg:14,r:1.45,up:3.8,fx:3,anim:'atk5'},3:{d:.48,h:.21,dmg:22,r:1.55,kd:1,anim:'atk3'},
   6:{d:.28,h:.1,dmg:9,r:1.3,fx:1,kick:1,anim:'kick1'},7:{d:.34,h:.12,dmg:13,r:1.45,fx:2,kick:1,anim:'kick2'},13:{d:.36,h:.13,dmg:10,r:1.55,fx:2,kick:1,stag:.75,anim:'kick4'},14:{d:.38,h:.14,dmg:15,r:1.55,fx:1,kick:1,kb:5.6,anim:'kick5'},8:{d:.5,h:.22,dmg:21,r:1.6,kd:1,fx:3,kick:1,anim:'kick3'},
   9:{d:.38,h:.12,dmg:14,r:1.45,fx:3,kick:1,up:4.8,anim:'kick1',name:'솟구쳐 차기!'},10:{d:.42,h:.13,dmg:14,r:1.85,fx:2,all:1,anim:'atk2',name:'회전 베기!'}};
-const DMV=[1,2,11,12,3],KMV=[6,7,13,14,8];function aspd(){return .55*(1+(P.S&&P.S.aspd||0))}
+const DMV=[1,2,11,12,3],KMV=[6,7,13,14,8];function aspd(){return .55*(1+(P.S&&P.S.aspd||0)+(P.aspT>0?.3:0))}
 const HOOD=[0x4d5a6b,0x5d4a78,0x3d6b5c,0x775a3c,0x7d3f44,0x3f4650],SHIRT=[0x6b3fa0,0xa03f4f,0x3f7da0,0x9a7a2a,0x3f9a6a];
 const fwd=a=>[sin(a),cos(a)];
 function angTo(a,b,k){let d=b-a;while(d>PI)d-=PI*2;while(d<-PI)d+=PI*2;return a+d*k}
@@ -680,7 +680,7 @@ const STD=[['str','힘','레벨마다 공격력 +6%'],['vit','체력','레벨마
 function drawStatTab(){const S=P.S||{},st=P.st;let h='<h3>능력치 <small>Lv.'+P.lv+'</small></h3>';const R=Math.round,pct=x=>R(x*100)+'%';
   const rows=[['공격력',R(100*(1+.06*st.str)),R(100*(1+.06*st.str)*(1+(S.atk||0))),'기본 100 · 레벨마다 +6'],['최대 체력',120+15*st.vit,P.max,'기본 120 · 레벨마다 +15'],['기 충전',R(100*(1+.08*st.ki)),R(100*(1+.08*st.ki)*(1+(S.ki||0))),'기본 100 · 레벨마다 +8'],['필살기 피해',R(100*(1+.06*st.ki)),R(100*(1+.06*st.ki)*(S.sp||1)),'기본 100 · 레벨마다 +6']];
   for(const [n,v,f,d] of rows){const g=f-v;h+='<div class="sr"><div><b>'+n+' <em>'+v+'</em>'+(g>0?' <i class="gp">+'+g+'</i> <i class="fv">= '+f+'</i>':'')+'</b><span>'+d+(g>0?' · <i class="gp">초록 숫자</i>는 장비로 오른 몫':'')+'</span></div></div>'}
-  const ex=[];if(S.def)ex.push('받는 피해 -'+pct(S.def));if(S.spd)ex.push('이동 속도 +'+pct(S.spd));if(S.crit)ex.push('치명타 확률 '+pct(S.crit));if(S.critM)ex.push('치명타 피해 x'+S.critM.toFixed(2));if(S.bullet)ex.push('총알·폭발 피해 -'+pct(S.bullet));if(S.noto)ex.push('악명 증가 -'+pct(S.noto));if(S.score)ex.push('점수 +'+pct(S.score));if(S.firm)ex.push('밀려나는 거리 -'+pct(1-S.firm));
+  const ex=[];if(S.def)ex.push('받는 피해 -'+pct(S.def));if(S.spd)ex.push('이동 속도 +'+pct(S.spd));if(S.aspd)ex.push('공격 속도 +'+pct(S.aspd));if(S.crit)ex.push('치명타 확률 '+pct(S.crit));if(S.critM)ex.push('치명타 피해 x'+S.critM.toFixed(2));if(S.bullet)ex.push('총알·폭발 피해 -'+pct(S.bullet));if(S.noto)ex.push('악명 증가 -'+pct(S.noto));if(S.score)ex.push('점수 +'+pct(S.score));if(S.firm)ex.push('밀려나는 거리 -'+pct(1-S.firm));
   if(ex.length)h+='<div class="sr"><div><b>장비 추가 효과</b><span class="gp2">'+ex.join(' · ')+'</span></div></div>';
   h+='<p>레벨이 오르면 공격력·체력·기 충전·필살기가 모두 함께 오릅니다. 흰 숫자는 레벨로 오른 값, 초록 숫자는 장비로 더해진 값, 오른쪽이 최종 값이에요. 레벨은 게임오버가 되면 1부터 다시 시작해요.</p>';return h}
 function drawStats(){const t=G.tab||'st';let h='<div class="tabs">'+[['st','능력치'],['eq','장비']].concat(G.booth?[['up','강화']]:[]).map(([k,n])=>'<button type="button" data-t="'+k+'"'+(t===k?' class="on"':'')+'>'+n+'</button>').join('')+'<button type="button" id="stx" class="xb">✕ 닫기</button></div>';h+=t==='eq'?drawEqTab():t==='up'&&G.booth?drawUpTab():drawStatTab();$('stw').innerHTML=h}
@@ -731,7 +731,7 @@ function spawnWave(){
     else giveMis(mkMis('boss',{g:1,text:'보스 「'+B.name+'」 처치'}),[[STAFF,G.station+'역에 「'+B.name+'」이(가) 나타나 승강장을 휘젓고 있습니다!'],[STAFF,'보통 놈이 아닙니다. 꼭 쓰러뜨려 주십시오!'],['단소히어로','단소 맛을 보여 주겠소.']])}
   else{G.bossName='';platMis(G.wave===1,G.station)}hud();
 }
-function newGame(){G.rv=null;if(RB){scene.remove(RB.g);if(RB.tc)scene.remove(RB.tc.g);RB=null}stationFix();G.inf=false;G.infWait=false;G.aiWait=false;G.aiOn=false;hazClear();G.finalWait=false;G.finalOn=false;G.finalDone=false;G.rally=0;G.rallyDone=false;sayClear();for(const a of allies)allyReset(a);G.pause=false;$('stw').hidden=true;P.lv=1;P.xp=0;P.pts=0;P.st={str:0,vit:0,ki:0};P.max=120;drawLv();P.spdT=0;P.shield=0;P.ki=0;P.cast=0;P.ch={d:0,k:0,n:0,fin:false};if(PUB&&!sbUser){P.gearInit=0;GS=null}if(!P.gearInit){P.gearInit=1;if(!(GS&&gearApply(GS))){P.bag=[];P.eq={danso:{id:gid++,s:'danso',b:0,g:0,lv:0}};P.gear=[];P.mat={tok:0,gold:0,charm:0}}}drawBag();G.upSel=0;G.upMsg='';G.tab='st';recalc();G.tier=0;G.noto=0;G.shT=0;clearEnemies();dropCarry();clearItems();resetProps(true);P.pow=0;G.wave=1;G.score=0;G.combo=0;G.nextT=0;G.phase='fight';G.trans=false;G.station='건대입구';G.ride=0;G.bn=0;G.bossName='';G.border=[0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5);G.ms=[];setZone('plat');drawName(G.station);Object.assign(P,{x:4,y:0,z:0,vx:0,vz:0,vy:0,ang:PI/2,hp:P.max,dead:false,inv:0,atk:0,hurtT:0,dashT:0,guard:false,onG:true});P.rig.root.visible=true;camYaw=PI/2;spawnWave();G.state='play';$('ov').hidden=true;hud();
+function newGame(){G.rv=null;if(RB){scene.remove(RB.g);if(RB.tc)scene.remove(RB.tc.g);RB=null}stationFix();G.inf=false;G.infWait=false;G.aiWait=false;G.aiOn=false;hazClear();G.finalWait=false;G.finalOn=false;G.finalDone=false;G.rally=0;G.rallyDone=false;sayClear();for(const a of allies)allyReset(a);G.pause=false;$('stw').hidden=true;P.lv=1;P.xp=0;P.pts=0;P.st={str:0,vit:0,ki:0};P.max=120;drawLv();P.spdT=0;P.aspT=0;P.shield=0;P.ki=0;P.cast=0;P.ch={d:0,k:0,n:0,fin:false};if(PUB&&!sbUser){P.gearInit=0;GS=null}if(!P.gearInit){P.gearInit=1;if(!(GS&&gearApply(GS))){P.bag=[];P.eq={danso:{id:gid++,s:'danso',b:0,g:0,lv:0}};P.gear=[];P.mat={tok:0,gold:0,charm:0}}}drawBag();G.upSel=0;G.upMsg='';G.tab='st';recalc();G.tier=0;G.noto=0;G.shT=0;clearEnemies();dropCarry();clearItems();resetProps(true);P.pow=0;G.wave=1;G.score=0;G.combo=0;G.nextT=0;G.phase='fight';G.trans=false;G.station='건대입구';G.ride=0;G.bn=0;G.bossName='';G.border=[0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5);G.ms=[];setZone('plat');drawName(G.station);Object.assign(P,{x:4,y:0,z:0,vx:0,vz:0,vy:0,ang:PI/2,hp:P.max,dead:false,inv:0,atk:0,hurtT:0,dashT:0,guard:false,onG:true});P.rig.root.visible=true;camYaw=PI/2;spawnWave();G.state='play';$('ov').hidden=true;hud();
   banner('건대입구역 승강장','승강장을 돌아다니며 빌런을 정리하세요',3.4)}
 function hud(){$('hp').style.width=clamp(P.hp/P.max*100,0,100)+'%';$('hpt').textContent=Math.max(0,Math.ceil(P.hp))+'/'+P.max;$('score').textContent=G.score.toLocaleString('ko-KR');const nl=enemies.filter(e=>e.st!=='dead'&&!e.sheriff).length;$('carl').textContent=G.zone==='train'?'열차 안 · 남은 빌런 '+nl+'명':G.station+'역 · 남은 빌런 '+nl+'명'}
 function addScore(n){G.score+=Math.round(n*(1+((P.S&&P.S.score)||0)));hud()}
@@ -947,15 +947,16 @@ const ITEMS={
   speed:{e:'👟',n:'스피드 음료',l:'속',c:0xff8a3a,d:'10초간 이동 속도 1.4배',wv:10,wk:8,use(){P.spdT=10;ftext(P.x,2.1,P.z,'스피드 업!','crit')}},
   shield:{e:'🍬',n:'무적 사탕',l:'무',c:0xf2f2ff,d:'6초간 무적',wv:7,wk:5,use(){P.shield=6;ftext(P.x,2.1,P.z,'6초간 무적!','crit')}},
   ext:{e:'🧯',n:'소화기',l:'소',c:0xd9302c,d:'주변 5.5m 빌런 전원 3초 기절',wv:0,wk:7,use(){dust(P.x,P.z,16);ringFx(P.x,1,P.z,0xffffff,3);for(const e of enemies)if(e.st!=='dead'&&Math.hypot(e.x-P.x,e.z-P.z)<5.5){e.st='stun';e.stT=3;e.slam=false;e.bang.visible=false;dust(e.x,e.z,4)}ftext(P.x,2.1,P.z,'소화기 분사!','crit');G.shake=.1}},
+  rush:{e:'☕',n:'에너지 드링크',l:'에',c:0x9a4ad9,d:'15초간 공격 속도 +30%',wv:12,wk:9,use(){P.aspT=15;ftext(P.x,2.1,P.z,'공격 속도 업!','crit')}},
   badge:{e:'🎖️',n:'모범시민 배지',l:'배',c:0x9a6cff,d:'악명 -60',wv:0,wk:6,use(){if(!(G.noto>0)){ftext(P.x,2.1,P.z,'악명이 없어요','sys');return false}addNoto(-60);ftext(P.x,2.1,P.z,'악명 -60','sys')}}};
 const GR=[{n:'일반',c:0xe8ece9,m:1},{n:'고급',c:0x5fe08a,m:1.35},{n:'희귀',c:0x4aa8ff,m:1.75},{n:'영웅',c:0xb07cff,m:2.2},{n:'전설',c:0xffd23a,m:2.8}];
 const SLOTS=[['danso','단소'],['hat','모자'],['vest','조끼'],['shoe','신발'],['acc','장신구']];
-const GB={danso:[{n:'대나무 단소',atk:.06},{n:'흑단 단소',atk:.07},{n:'강철 단소',atk:.07,gb:1,t:'기동대 방패를 무시'},{n:'청옥 단소',atk:.07,ki:.1},{n:'국악원 명품 단소',atk:.07,sp:1,t:'필살기 피해 증가'}],
+const GB={danso:[{n:'대나무 단소',atk:.06,aspd:.035},{n:'흑단 단소',atk:.07,aspd:.035},{n:'강철 단소',atk:.07,aspd:.035,gb:1,t:'기동대 방패를 무시'},{n:'청옥 단소',atk:.07,ki:.1,aspd:.035},{n:'국악원 명품 단소',atk:.07,aspd:.035,sp:1,t:'필살기 피해 증가'}],
   hat:[{n:'하늘색 캡',hp:10},{n:'등산모',hp:12},{n:'공사장 안전모',hp:10,def:.03},{n:'기관사 모자',hp:12,spd:.03},{n:'7호선 역장 모자',hp:14,def:.03,noto:.05}],
   vest:[{n:'남색 조끼',def:.04},{n:'형광 안전조끼',def:.035,noto:.1},{n:'방탄 조끼',def:.035,bullet:.1},{n:'특공 조끼',def:.04,bullet:.08,hp:8},{n:'명인의 도포',def:.04,ki:.08,hp:8}],
-  shoe:[{n:'구두',spd:.03,hp:5,def:.01},{n:'러닝화',spd:.05,hp:6,def:.012},{n:'등산화',spd:.035,hp:7,def:.014,firm:1,t:'맞아도 덜 밀려남'},{n:'에어 운동화',spd:.06,hp:8,def:.016},{n:'축지법 고무신',spd:.06,hp:9,def:.018,firm:1,t:'맞아도 덜 밀려남'}],
-  acc:[{n:'교통카드',score:.1},{n:'염주',ki:.12},{n:'선글라스',crit:.05,t:'치명타 피해 증가'},{n:'골드 정기권',score:.1,ki:.06},{n:'명인의 노리개',crit:.04,atk:.03,ki:.06,t:'치명타 피해 증가'}]};
-const SN={atk:['공격력',1],hp:['최대 체력',0],def:['받는 피해',1,'-'],spd:['이동 속도',1],score:['점수',1],ki:['기 충전',1],crit:['치명타 확률',1],noto:['악명 증가',1,'-'],bullet:['총알·폭발 피해',1,'-']};
+  shoe:[{n:'구두',spd:.03,hp:5,def:.01},{n:'러닝화',spd:.05,hp:6,def:.012},{n:'등산화',spd:.035,hp:7,def:.014,firm:1,t:'맞아도 덜 밀려남'},{n:'에어 운동화',spd:.06,hp:8,def:.016,aspd:.03},{n:'축지법 고무신',spd:.06,hp:9,def:.018,aspd:.03,firm:1,t:'맞아도 덜 밀려남'}],
+  acc:[{n:'교통카드',score:.1},{n:'염주',ki:.12},{n:'선글라스',crit:.05,t:'치명타 피해 증가'},{n:'골드 정기권',score:.1,ki:.06,aspd:.03},{n:'명인의 노리개',crit:.04,atk:.03,ki:.06,aspd:.03,t:'치명타 피해 증가'}]};
+const SN={atk:['공격력',1],hp:['최대 체력',0],def:['받는 피해',1,'-'],spd:['이동 속도',1],score:['점수',1],ki:['기 충전',1],crit:['치명타 확률',1],noto:['악명 증가',1,'-'],bullet:['총알·폭발 피해',1,'-'],aspd:['공격 속도',1]};
 const MAT={tok:{e:'🪙',n:'지하철 토큰',c:0xc9a24a,d:'강화 1회에 1~6개 사용(높은 단계일수록 많이) · 빌런 6%, 보스 2~4개'},gold:{e:'🌟',n:'황금 토큰',c:0xffd23a,d:'강화 성공률 +15% · 보스 10%'},charm:{e:'🧧',n:'보호 부적',c:0xf0e070,d:'강화 중 파괴를 1회 막음 · 보스 15%'}};
 const TOK=[1,1,1,2,2,3,3,4,5,6],RATE=[100,100,100,85,75,65,57,50,42,35],BRK=[0,0,0,0,0,.13,.19,.25,.36,.46];
 let gid=1;P.S={};P.eq={};P.gear=[];P.mat={tok:0,gold:0,charm:0};
@@ -1016,7 +1017,7 @@ function loginUI(){const k=$('klog');if(!k)return;if(!PUB){k.hidden=true;return}
   if(sbUser){$('klt').innerHTML='카카오 로그인: <b></b> · 장비와 강화가 계정에 저장돼요';$('klt').querySelector('b').textContent=kName();$('klb').textContent='로그아웃';$('klb').className='out'}
   else{$('klt').innerHTML=over&&n>0?'모은 장비 <b>'+n+'개</b>와 강화, 이대로 사라지게 둘 건가요?<br>카카오로 로그인하면 <b>다음 판에도 그대로</b> 씁니다.':'카카오 로그인하면 장비·강화가 <b>다음 판에도 그대로</b>';$('klb').textContent='카카오로 로그인';$('klb').className=''}}
 function recalc(){rebuildHero();gearSave();const S={gb:0,sp:0,firm:0,sonic:0};for(const k in SN)S[k]=0;for(const k in P.eq){const g=P.eq[k];if(!g)continue;const b=GB[g.s][g.b];for(const q in SN)S[q]+=gVal(g,q);if(b.gb)S.gb=1;if(b.sp)S.sp=Math.max(S.sp,spM(g));if(b.firm)S.firm=firmK(g);if(b.crit)S.critM=critM(g);if(g.s==='danso'&&g.lv>=10)S.sonic=1}
-  S.def=Math.min(.6,S.def);S.bullet=Math.min(.7,S.bullet);S.noto=Math.min(.8,S.noto);S.crit=Math.min(.4,S.crit);P.S=S;
+  S.def=Math.min(.6,S.def);S.bullet=Math.min(.7,S.bullet);S.noto=Math.min(.8,S.noto);S.crit=Math.min(.4,S.crit);S.aspd=Math.min(.6,S.aspd);P.S=S;
   const mx=120+15*P.st.vit+Math.round(S.hp);if(mx!==P.max){P.hp=Math.max(1,Math.min(mx,P.hp+(mx-P.max)));P.max=mx}
   const d=P.eq.danso,wm=P.rig.M&&P.rig.M.wood;if(wm&&wm.emissive){const on=d&&d.lv>=7;wm.emissive.setHex(on?GR[d.g].c:0);wm.emissiveIntensity=on?.3+.07*(d.lv-7):1}hud()}
 function gainGear(g){const cur=P.eq[g.s];ftext(P.x,2.3,P.z,gName(g)+' 획득',g.g>=2?'crit':'sys');
@@ -1058,6 +1059,7 @@ function itemMesh(type,gc,gg){const g=new T.Group();
   else if(type==='drink'){A(C(.06,.06,.17),0x3fd07a);A(C(.0615,.0615,.06),0xf2f2ee,0,-.01,0,0,0,false);A(C(.045,.06,.02),0xc9d0d4,0,.095);A(gBox(.03,.006,.018),0x8d949a,0,.108,.012,0,0,false)}
   else if(type==='kimbap'){A(C(.08,.08,.075,14),0x1d2a20,0,0,0,PI/2);A(C(.066,.066,.08,14),0xf5f3ea,0,0,0,PI/2,0,false);A(C(.022,.022,.084,8),0xf0c419,-.018,.012,0,PI/2,0,false);A(C(.018,.018,.084,8),0xff8a3a,.022,.014,0,PI/2,0,false);A(C(.018,.018,.084,8),0x3fa34d,.002,-.024,0,PI/2,0,false)}
   else if(type==='power'){A(C(.052,.056,.15),0xffd23a);A(C(.024,.05,.05),0xffd23a,0,.1);A(C(.028,.028,.026),0xd9302c,0,.138);A(C(.0575,.0575,.045),0xd9302c,0,-.01,0,0,0,false);A(gBox(.02,.035,.004),0xfff6c8,0,-.01,.058,0,.5,false)}
+  else if(type==='rush'){A(C(.048,.048,.16),0x9a4ad9);A(C(.049,.049,.02),0xd0d4d8,0,.09);A(C(.049,.049,.02),0xd0d4d8,0,-.09);A(gBox(.004,.07,.06),0xffd23a,0,0,.048,0,0,false)}
   else if(type==='ki'){A(gSph(.078),0x4aa8ff);A(C(.026,.034,.07),0xbfe6ff,0,.09);A(C(.032,.032,.022),0x8a5a2b,0,.135);A(gSph(.03,.03,.012),0xffffff,-.025,.02,.07,0,0,false)}
   else if(type==='speed'){A(gBox(.085,.05,.2),0xff8a3a,0,0,0);A(gSph(.043,.032,.05),0xff8a3a,0,-.002,.1);A(gBox(.092,.018,.22),0xf2f2ee,0,-.034,.01);A(gBox(.078,.06,.08),0xff8a3a,0,.05,-.06);A(gBox(.09,.014,.05),0xf2f2ee,0,.012,.03,0,0,false);for(const sd of[1,-1])A(gBox(.004,.03,.09),0xffffff,sd*.044,.005,.02,.5,0,false)}
   else if(type==='shield'){A(gSph(.08,.08,.035),0xf8f8ff);A(geo('itor',()=>new T.TorusGeometry(.05,.013,6,16)),0xff6fa8,0,0,0,0,0,false);A(gSph(.02,.02,.04),0xff6fa8,0,0,0,0,0,false);A(C(.009,.009,.17,6),0xf2f2ee,0,-.15)}
@@ -1169,7 +1171,7 @@ function hurtPlayer(e,d,ub){
 }
 function updPlayer(dt){
   P.sinceDash=(P.sinceDash||0)+dt;P.inv-=dt;P.hurtT-=dt;P.dashCd-=dt;P.buf-=dt;P.comboWin-=dt;P.animT+=dt*(P.atk>0?aspd():1);
-  P.pow=(P.pow||0)-dt;P.spdT=(P.spdT||0)-dt;if(P.shield>0){P.shield-=dt;P.inv=Math.max(P.inv,.12)}P.throwT=(P.throwT||0)-dt;
+  P.pow=(P.pow||0)-dt;P.spdT=(P.spdT||0)-dt;P.aspT=(P.aspT||0)-dt;if(P.shield>0){P.shield-=dt;P.inv=Math.max(P.inv,.12)}P.throwT=(P.throwT||0)-dt;
   if(pressed.pick&&!P.dead&&P.hurtT<=0)tryPick();
   if(pressed.atk||pressed.kick){if(P.carry)throwIt();else{P.buf=.2;P.bufT=pressed.kick?'k':'d'}}
   if(pressed.sp&&P.ki>=100&&P.onG&&!P.dead&&P.hurtT<=0&&!P.carry&&!(P.cast>0)){P.cast=1.25;P.castN=0;P.ki-=100;P.atk=0;P.dashT=0;P.guard=false;P.buf=0;fluteSfx();pillarFx(P.x,P.z);noteFx(P.x,P.z);spFlash('',900);ringFx(P.x,1.2,P.z,0xffd23a,3);G.hitstop=Math.max(G.hitstop,.22);G.shake=Math.max(G.shake,.12);tone(220,.5,'triangle',.12,440)}
