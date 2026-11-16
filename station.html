@@ -1351,7 +1351,7 @@ $('stb').addEventListener('click',()=>{if(G.pause&&G.tab==='st')closeStats();els
 $('stw').addEventListener('pointerdown',e=>e.stopPropagation());$('stw').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;if(b.id==='stx'){closeStats();return}if(d.k){addStat(d.k);return}if(d.t){G.tab=d.t;G.upMsg=''}else if(d.eq)eqGear(+d.eq);else if(d.un)unGear(d.un);else if(d.sc)scrapGear(+d.sc);else if(d.pk){G.upSel=+d.pk;G.upMsg=''}else if(d.opt==='gold')G.useGold=!G.useGold;else if(d.opt==='charm')G.useCharm=!G.useCharm;else if(d.up)doUp();drawStats()});
 P.ki=0;P.ch={d:0,k:0,n:0,fin:false};
 P.bag=[];drawBag();
-for(let i=0;i<4;i++)mkNpc();drawArr();setInterval(drawArr,20000);
+for(let i=0;i<2;i++)mkNpc();drawArr();setInterval(drawArr,20000);
 /* ---------- shared ranking (artifact database; falls back to this device only) ---------- */
 let rdb=null,rmy=null,rboard=[],rmine=[],rlocal=false,rlast=null,rcan=null;
 const rmsg=t=>{$('rmsg').textContent=t||''};
