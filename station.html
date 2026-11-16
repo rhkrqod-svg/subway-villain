@@ -396,7 +396,7 @@ const PILL=[];for(let x=7;x<PX-4;x+=7.5){PILL.push(box(.72,CEIL,.72,wallMat(1.2,
 /* benches, vending machines, bins */
 const props=[];
 for(const x of[11,26,41,53]){const ms=[box(2.2,.07,.5,mWood,x,.46,PZ-.75,true),box(2.2,.4,.06,mWood,x,.82,PZ-.48,true)];for(const s of[-1,1])ms.push(box(.07,.46,.44,mSteel,x+s*.95,.23,PZ-.75));const cs=[-.7,0,.7].map(s=>({x:x+s,z:PZ-.7,r:.45}));cols.push(...cs);props.push({type:'bench',x,z:PZ-.7,r:1.1,hp:3,max:3,ms,cs})}
-const BOOTH={x:6.6,z:PZ-.8};{const x=BOOTH.x,z=BOOTH.z;box(1.8,2.05,1.1,std(0xb5885a,.7),x,1.025,z,true);box(2.05,.12,1.35,std(0xc0282d,.6),x,2.1,z-.1,true);box(1.3,.7,.04,std(0x0c1722,.1,.4),x,1.35,z-.56);box(1.7,.12,.5,std(0x6b4a2c,.7),x,.95,z-.75,true);
+const BOOTH={x:56.4,z:PZ-.8};{const x=BOOTH.x,z=BOOTH.z;box(1.8,2.05,1.1,std(0xb5885a,.7),x,1.025,z,true);box(2.05,.12,1.35,std(0xc0282d,.6),x,2.1,z-.1,true);box(1.3,.7,.04,std(0x0c1722,.1,.4),x,1.35,z-.56);box(1.7,.12,.5,std(0x6b4a2c,.7),x,.95,z-.75,true);
   sign(ctex(256,64,(g,w,h)=>{g.fillStyle='#7a3a20';g.fillRect(0,0,w,h);g.fillStyle='#fff6d8';g.font='34px '+KF;g.textAlign='center';g.textBaseline='middle';g.fillText('구두수선 · 강화',w/2,h/2+2)}),1.7,.42,x,1.82,z-.57,PI);cols.push({x,z,r:.95})}
 [[18,'#c9302c'],[47,'#2a5fb0']].forEach(([x,c])=>{const ms=[box(1.05,1.95,.7,std(c,.5),x,.98,PZ-.55,true),sign(vendTex(c),.95,1.85,x,.98,PZ-.92,PI)],cs=[{x,z:PZ-.55,r:.68}];cols.push(...cs);props.push({type:'vend',x,z:PZ-.55,r:.7,hp:5,max:5,ms,cs,c0:ms[0].material.color.clone()})});
 for(const [x,z] of[[21,PZ-.5],[33,PZ-.5],[50,PZ-.5],[14.5,.2],[29.5,.2],[44.5,.2],[37,-2.6]]){const b=new T.Mesh(new T.CylinderGeometry(.22,.19,.8,14),mSteel);b.position.set(x,.4,z);b.castShadow=true;env.add(b);b.add(new T.Mesh(b.geometry,OUT));const cs=[{x,z,r:.32}];cols.push(...cs);props.push({type:'bin',x,z,r:.35,hp:3,max:3,ms:[b],cs,hx:x,hz:z})}
@@ -1040,7 +1040,7 @@ function gRow(g,btn,sel,act){return'<div class="er'+(sel?' sel':'')+'">'+gIco(g,
 function matLine(){return'<p class="mt">🪙 토큰 '+P.mat.tok+' · 🌟 황금 토큰 '+P.mat.gold+' · 🧧 보호 부적 '+P.mat.charm+'</p>'}
 function drawEqTab(){let h='<h3>장비</h3>';for(const [k,n] of SLOTS){const g=P.eq[k];h+=g?gRow(g,k!=='danso'?'<button type="button" data-un="'+k+'">해제</button>':''):'<div class="er"><i>'+n+'</i><div><span>비어 있음</span></div></div>'}
   h+='<h4>가방 ('+P.gear.length+'/12) · 그림을 누르면 장착</h4>';if(!P.gear.length)h+='<p>빌런과 보스, 자판기에서 장비가 떨어집니다. 좋은 장비는 자동으로 장착돼요.</p>';for(const g of P.gear)h+=gRow(g,'<button type="button" data-eq="'+g.id+'">장착</button><button type="button" data-sc="'+g.id+'">분해</button>',false,'eq');
-  h+=(G.upMsg&&G.tab==='eq'?'<p class="um">'+G.upMsg+'</p>':'')+matLine()+'<p>장비·강화 재료·소모품은 저장되어 게임오버 후 다음 판에도 그대로 유지됩니다.</p><p>강화는 승강장을 정리한 뒤 왼쪽 끝 구두수선 부스에서 집기(F) 버튼으로 할 수 있어요.</p>';return h}
+  h+=(G.upMsg&&G.tab==='eq'?'<p class="um">'+G.upMsg+'</p>':'')+matLine()+'<p>장비·강화 재료·소모품은 저장되어 게임오버 후 다음 판에도 그대로 유지됩니다.</p><p>강화는 승강장을 정리한 뒤 오른쪽 끝 구두수선 부스에서 집기(F) 버튼으로 할 수 있어요.</p>';return h}
 function drawUpTab(){let h='<h3>구두수선 · 강화</h3>';const all=SLOTS.map(q=>P.eq[q[0]]).filter(Boolean).concat(P.gear);if(!G.upSel&&all[0])G.upSel=all[0].id;
   for(const g of all)h+=gRow(g,'<button type="button" data-pk="'+g.id+'">'+(G.upSel===g.id?'선택됨':'선택')+'</button>',G.upSel===g.id);
   const [g]=findGear(G.upSel);h+=matLine();if(g)h+='<p class="ui">'+gName(g)+' · '+upInfo(g)+'</p>';
