@@ -1268,7 +1268,7 @@ function updEnemy(e,dt,busyN){
       if(jp){if(!e.hit&&e.y<=0&&e.vy===0&&e.stT<.45){e.hit=true;dust(e.x,e.z,7);ringFx(e.x,.3,e.z,0xffe9a8,2.2);G.shake=Math.max(G.shake,.12);sfx.hit(true);if(dist<(e.tier===3?2.3:1.45)&&P.y<.6)hurtPlayer(e,Math.round(16*(e.dm||1)));if(e.st!=='strike')break}}
       else if(!e.hit&&!th&&dist<(ch?.8:sw?1.55:.9)&&P.y<.9&&(!sw||(f[0]*dx+f[1]*dz)/dist>.2)){e.hit=true;const h0=P.hp;hurtPlayer(e,Math.round((pu&&e.sheriff?12:pu?8:ch&&e.sheriff?15:ch||sl?13:e.kind==='zombie'?9:e.sheriff?14:sw?12:10)*(e.dm||1)));if(pu&&P.hp<h0){const kb=e.sheriff?2.6:1.9;P.vx*=kb;P.vz*=kb}if(e.st!=='strike')break}
       if(e.stT<=0&&e.boss&&e.look.bk==='mask'&&sl&&!e.did2){e.did2=true;e.slam=false;e.long=true;e.st='wind';e.stT=.32;e.atkKind='slam';e.ang=want;sfx.warn();break}
-      if(e.stT<=0){e.did2=false;e.slam=false;e.st='cool';e.stT=ch||sl&&e.long?.85:.5;e.cd=e.boss?rnd(.7,1.3)/Math.sqrt(e.dm||1)*(e.hp<e.max*.5?.6:1):e.atkKind==='burst'?rnd(1.6,2.6):th?rnd(2.4,4):e.sheriff?rnd(.8,1.6)/Math.sqrt(e.tier||1):pu?rnd(1,1.8):rnd(1.3,2.6);if(ch)dust(e.x,e.z,4)}}break;
+      if(e.stT<=0){e.did2=false;e.slam=false;e.st='cool';e.stT=ch||sl&&e.long?.85:.5;e.cd=e.boss?rnd(1.1,1.9)/Math.sqrt(e.dm||1)*(e.hp<e.max*.5?.75:1):e.atkKind==='burst'?rnd(1.6,2.6):th?rnd(2.4,4):e.sheriff?rnd(.8,1.6)/Math.sqrt(e.tier||1):pu?rnd(1,1.8):rnd(1.3,2.6);if(ch)dust(e.x,e.z,4)}}break;
     case'cool':setAnim(e,'idle');e.stT-=dt;if(e.stT<=0)e.st='walk';break;
     case'hurt':setAnim(e,'hurt');kb(.004);e.stT-=dt;if(e.stT<=0){e.st='walk';e.cd=Math.max(e.cd,.35)}break;
     case'stun':setAnim(e,'stun');kb(.004);e.stT-=dt;if(e.stT<=0)e.st='walk';break;
