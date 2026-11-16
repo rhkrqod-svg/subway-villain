@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>html{color-scheme:dark}body{margin:0;background:#050807}[hidden]{display:none!important}</style>
 <script>(function(){try{var u=navigator.userAgent,h=location.href;if(/KAKAOTALK/i.test(u)){location.href="kakaotalk://web/openExternal?url="+encodeURIComponent(h)}else if(/Android/i.test(u)&&/(Instagram|FBAN|FBAV|NAVER\(inapp|Line\/|DaumApps|everytimeApp|; wv\))/i.test(u)){location.href="intent://"+h.replace(/^https?:\/\//,"")+"#Intent;scheme=https;package=com.android.chrome;end"}}catch(e){}})()</script>
+<meta property="og:type" content="website">
+<meta property="og:title" content="지하철빌런특공대">
+<meta property="og:description" content="7호선 승강장에 나타난 빌런들을 단소 하나로 정리하라! 설치 없이 바로 하는 3D 액션 게임">
+<meta property="og:image" content="https://rhkrqod-svg.github.io/subway-villain/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://rhkrqod-svg.github.io/subway-villain/station.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="7호선 승강장에 나타난 빌런들을 단소 하나로 정리하라! 설치 없이 바로 하는 3D 액션 게임">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#050807">
@@ -113,7 +122,7 @@ kbd{background:var(--panel);border:1px solid #2c3833;border-radius:5px;padding:1
 <div class="wrap">
   <div class="top"><span class="badge">7</span><h1 class="logo">지하철빌런특공대<small>오픈월드</small></h1><span class="sp"></span><button class="mini" id="galb" type="button" hidden>빌런 도감</button><button class="mini" id="itb" type="button">아이템</button><button class="mini" id="fs" type="button">전체화면</button><button class="mini" id="snd" type="button">소리 켬</button></div>
   <div id="stage">
-    <canvas id="c"></canvas><div id="vig"></div><div id="hurt"></div><div id="rot"><div><b>⟳</b><p>휴대폰을 가로로 돌려 주세요</p><span>이 게임은 가로 화면에서만 플레이할 수 있어요</span></div></div><div id="lb"><i></i><i></i></div><div id="spf"><b>단소 불기</b></div>
+    <canvas id="c"></canvas><div id="vig"></div><div id="hurt"></div><div id="rot"><div><b>⟳</b><p>화면을 한 번 눌러 주세요</p><span>전체화면 가로 모드로 바뀌어요 · 안 바뀌면 휴대폰을 가로로 돌려 주세요</span></div></div><div id="lb"><i></i><i></i></div><div id="spf"><b>단소 불기</b></div>
     <div id="fl"></div>
     <div class="hud" id="hudL"><div class="nm"><span><i class="chip">단</i>단소히어로</span><b><span id="lvt">Lv.1</span> · <span id="hpt">120/120</span></b></div><div class="bar"><i id="hp"></i></div><div class="brow"><span class="bl">기<em id="kis"></em></span><div class="bar nob kib"><i id="ki"></i></div></div><div class="brow"><span class="bl">악명<em id="nos"></em></span><div class="bar nob"><i id="no"></i></div></div><div id="bag"></div></div>
     <div class="hud" id="hudR"><div id="score">0</div><div id="carl">건대입구역</div><canvas id="mm" width="240" height="44"></canvas><div id="mis"></div></div><div class="hud" id="boss" hidden><b id="bn"></b><div class="bar"><i id="bh"></i></div></div>
@@ -1085,7 +1094,7 @@ stage.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;
 const dend=e=>{if(drag&&e.pointerId===drag.id)drag=null};stage.addEventListener('pointerup',dend);stage.addEventListener('pointercancel',dend);
 if(matchMedia('(pointer:coarse)').matches)$('touch').classList.add('on');
 function goFull(){if(document.fullscreenElement)return;let pr;try{pr=stage.requestFullscreen?stage.requestFullscreen({navigationUI:'hide'}):Promise.reject()}catch(e){pr=Promise.reject()}Promise.resolve(pr).then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{stage.classList.add('full')});setTimeout(resize,150);setTimeout(resize,600)}
-if(window.matchMedia&&matchMedia('(pointer:coarse)').matches){stage.classList.add('full');addEventListener('pointerdown',()=>goFull(),{once:true,capture:true})}
+if(window.matchMedia&&matchMedia('(pointer:coarse)').matches){stage.classList.add('full');for(const ev of['pointerup','touchend','click'])addEventListener(ev,()=>{if(!document.fullscreenElement)goFull()},{capture:true,passive:true})}
 function tapStart(){ac();if(G.state==='title'||G.state==='over'&&G.t-G.overT>.8){goFull();newGame()}}
 $('ov').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();tapStart()});
 $('bag').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const d=e.target.closest('.sl');if(d)useItem(+d.dataset.i)});
