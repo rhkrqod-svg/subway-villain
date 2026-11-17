@@ -1006,7 +1006,7 @@ const ITEMS={
   };
 const GR=[{n:'일반',c:0xe8ece9,m:1},{n:'고급',c:0x5fe08a,m:1.35},{n:'희귀',c:0x4aa8ff,m:1.75},{n:'영웅',c:0xb07cff,m:2.2},{n:'전설',c:0xffd23a,m:2.8}];
 const SLOTS=[['danso','단소'],['glove','장갑'],['hat','모자'],['vest','조끼'],['shoe','신발'],['acc','장신구']];
-const GB={danso:[{n:'대나무 단소',atk:.06},{n:'흑단 단소',atk:.07,aspd:.045},{n:'강철 단소',atk:.07,aspd:.045,gb:1,t:'기동대 방패를 무시'},{n:'청옥 단소',atk:.07,ki:.1,aspd:.045},{n:'국악원 명품 단소',atk:.07,aspd:.06,sp:1,t:'필살기 피해 증가'}],
+const GB={danso:[{n:'대나무 단소',atk:.06},{n:'흑단 단소',atk:.07,aspd:.045},{n:'강철 단소',atk:.07,aspd:.045,gb:1,t:'기동대 방패를 무시'},{n:'청옥 단소',atk:.07,ki:.1,aspd:.045},{n:'국악원 명품 단소',atk:.07,aspd:.06,sp:1,t:'필살기 피해 증가'},{n:'명인의 단소',atk:.08,aspd:.06,sp:1,note:1,t:'기본 공격마다 음파(♪)가 날아감 · 단소 피해의 35% · 관통'}],
   hat:[{n:'하늘색 캡',hp:10},{n:'등산모',hp:12},{n:'공사장 안전모',hp:10,def:.03},{n:'기관사 모자',hp:12,spd:.03},{n:'7호선 역장 모자',hp:14,def:.03,noto:.05}],
   vest:[{n:'남색 조끼',def:.04},{n:'형광 안전조끼',def:.035,noto:.1},{n:'방탄 조끼',def:.035,bullet:.1},{n:'특공 조끼',def:.04,bullet:.08,hp:8},{n:'명인의 도포',def:.04,ki:.08,hp:8}],
   shoe:[{n:'구두',spd:.03,hp:5,def:.01},{n:'러닝화',spd:.05,hp:6,def:.012},{n:'등산화',spd:.035,hp:7,def:.014,firm:1,t:'맞아도 덜 밀려남'},{n:'에어 운동화',spd:.06,hp:8,def:.016,aspd:.048},{n:'축지법 고무신',spd:.06,hp:9,def:.018,aspd:.048,firm:1,t:'맞아도 덜 밀려남'}],
@@ -1038,7 +1038,7 @@ function gearMesh(sl,b){const g=new T.Group();
     else if(b===1){for(let i=0;i<16;i++){const a=i/16*PI*2;A(gSph(.018),0x6b3f1f,cos(a)*.085,sin(a)*.085,0,0,0,false)}A(gSph(.026),0xd9302c,0,-.11,0,0,0,false)}
     else{for(const sd of[1,-1])A(gBox(.075,.045,.012),0x0b0b0d,sd*.045,0,0);A(gBox(.03,.01,.012),0x15171a,0,.01,0,0,0,false);for(const sd of[1,-1])A(gBox(.008,.008,.12),0x15171a,sd*.082,.01,-.06,0,0,false)}}
   g.scale.setScalar(1.6);return g}
-const DCOL=[[0xdcae52,0x17140f],[0x2b1e16,0xc9a24a],[0xb8bec4,0x3a3f46],[0x3fa37a,0xf0f0e0],[0x7a1f1f,0xe3b75c]];
+const DCOL=[[0xdcae52,0x17140f],[0x2b1e16,0xc9a24a],[0xb8bec4,0x3a3f46],[0x3fa37a,0xf0f0e0],[0x7a1f1f,0xe3b75c],[0x14110d,0xffd23a]];
 const ICON={};
 function mkIcons(){try{const r=new T.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r.setSize(96,96,false);r.outputEncoding=T.sRGBEncoding;r.setClearColor(0,0);
   const sc=new T.Scene();sc.add(new T.HemisphereLight(0xffffff,0x2a3530,.85));const dl=new T.DirectionalLight(0xffffff,1.05);dl.position.set(2.5,4,3.5);sc.add(dl);const c=new T.PerspectiveCamera(30,1,.01,10);c.position.set(0,.35,1.15);c.lookAt(0,0,0);
@@ -1141,7 +1141,7 @@ function drawBag(){gearSave();let h='';BAGT.forEach((t,i)=>{const I=ITEMS[t],n=P
 function useItem(i){const t=BAGT[i],k=P.bag.indexOf(t);if(!t||k<0||P.dead||G.state!=='play')return;
   if(ITEMS[t].use()===false)return;
   P.bag.splice(k,1);drawBag();hud();sfx.chime();mEv('item',1);mFail('noitem')}
-function clearItems(){for(const b of bags)scene.remove(b.m);bags.length=0;for(const q of eprojs)scene.remove(q.m);eprojs.length=0;for(const it of items)scene.remove(it.g);items.length=0;for(const q of projs){q.p.ms[0].visible=false;q.p.dead=true}projs.length=0}
+function clearItems(){for(const b of bags)scene.remove(b.m);bags.length=0;for(const w of waves)scene.remove(w.g);waves.length=0;for(const q of eprojs)scene.remove(q.m);eprojs.length=0;for(const it of items)scene.remove(it.g);items.length=0;for(const q of projs){q.p.ms[0].visible=false;q.p.dead=true}projs.length=0}
 /* ---------- input ---------- */
 const K={left:false,right:false,up:false,down:false,guard:false,camL:false,camR:false},pressed={},joy={x:0,y:0};
 let camYaw=PI/2,camPitch=.22;
@@ -1189,6 +1189,13 @@ if(window.ResizeObserver)new ResizeObserver(()=>resize()).observe(stage);
 $('snd').addEventListener('click',e=>{muted=!muted;e.target.textContent=muted?'소리 끔':'소리 켬'});
 
 /* ---------- combat ---------- */
+const waves=[];let NOTEX=null;
+function noteWave(A,pf){if(!NOTEX)NOTEX=ctex(128,128,(c,w,h)=>{c.font='900 104px serif';c.textAlign='center';c.textBaseline='middle';c.shadowColor='#ffb800';c.shadowBlur=18;c.fillStyle='#fff3b0';c.fillText('♪',w/2,h/2+4)});
+  const g=new T.Group(),s=new T.Sprite(new T.SpriteMaterial({map:NOTEX,transparent:true,depthWrite:false}));s.scale.setScalar(.85);g.add(s);if(typeof glowTex!=='undefined'){const gl=new T.Sprite(new T.SpriteMaterial({map:glowTex,color:0xffcf3a,transparent:true,opacity:.7,blending:T.AdditiveBlending,depthWrite:false}));gl.scale.setScalar(1.3);g.add(gl)}
+  const y=P.y+1.15;g.position.set(P.x+pf[0]*.9,y,P.z+pf[1]*.9);scene.add(g);waves.push({g,x:P.x+pf[0]*.9,y,z:P.z+pf[1]*.9,vx:pf[0]*13,vz:pf[1]*13,life:.75,dmg:Math.max(1,Math.round(A.dmg*.35)),hit:new Set(),ph:Math.random()*6});tone(pick([784,880,988,1047]),.12,'triangle',.05)}
+function updWaves(dt){for(let i=waves.length-1;i>=0;i--){const w=waves[i];w.life-=dt;w.x+=w.vx*dt;w.z+=w.vz*dt;w.ph+=dt*14;w.g.position.set(w.x,w.y+Math.sin(w.ph)*.12,w.z);w.g.children[0].material.rotation=Math.sin(w.ph*.5)*.3;
+  for(const e of enemies){if(e.st==='dead'||w.hit.has(e)||e.y>1.6)continue;if(Math.hypot(e.x-w.x,e.z-w.z)<.85){w.hit.add(e);hitEnemy(e,{dmg:w.dmg,aoe:1},1);spark(e.x,1.3,e.z,6,0xffe27a,4)}}
+  const end=w.life<=0||w.x<.3||w.x>ZX-.3||abs(w.z)>ZZ-.2;if(end){scene.remove(w.g);waves.splice(i,1)}else if(w.life<.2)w.g.children.forEach(c=>c.material.opacity=w.life*5*(c.material.blending===T.AdditiveBlending?.7:1))}}
 function hitEnemy(e,A,stage){
   const pf=fwd(P.ang),ef=fwd(e.ang),back=pf[0]*ef[0]+pf[1]*ef[1]>.35&&e.st!=='down'&&!e.slam,crit=!A.aoe&&Math.random()<(P.S.crit||0),d=Math.round(A.dmg*(back?2:1)*(P.pow>0?1.5:1)*(1+.06*P.st.str)*(1+(P.S.atk||0))*(crit?(P.S.critM||1.8):1));
   if(e.boss&&e.look.bk==='umb'&&(e.st==='walk'||e.st==='wind')&&pf[0]*ef[0]+pf[1]*ef[1]<-.3&&A.dmg<50&&!A.aoe){spark(e.x-pf[0]*.4,1.2,e.z-pf[1]*.4,6,0xf0c419,4);ftext(e.x,2.4,e.z,'우산에 막힘','sys');sfx.block();return}
@@ -1261,6 +1268,7 @@ function updPlayer(dt){
     }
     if(P.atk>0){const A=AT[P.atk];P.atkE+=dt*aspd();
       if(!P.atkHit&&P.atkE>=A.h){P.atkHit=true;slashFx(P,P.atk===5?3:A.fx||P.atk,!!A.kick);const pf=fwd(P.ang);
+        if(P.eq.danso&&GB.danso[P.eq.danso.b].note&&!A.kick&&P.atk!==5)noteWave(A,pf);
         if(P.S.sonic&&!A.kick){ringFx(P.x+pf[0]*1.6,1.1,P.z+pf[1]*1.6,0x9fe8ff,1.6);for(const e of enemies){if(e.st==='dead')continue;const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz);if(d>=A.r&&d<A.r+2.6&&(pf[0]*dx+pf[1]*dz)/d>.5)hitEnemy(e,{dmg:Math.round(A.dmg*.6),aoe:1},1)}}
         for(const e of enemies){if(e.st==='dead')continue;const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz);if(d<A.r&&(A.all||d<.55||(pf[0]*dx+pf[1]*dz)/d>.3)&&abs(e.y-P.y)<1.4)hitEnemy(e,A,A.kd?3:1)}
         for(const n of npcs){const dx=n.x-P.x,dz=n.z-P.z,d=Math.hypot(dx,dz);if(d<A.r&&(d<.55||(pf[0]*dx+pf[1]*dz)/d>.3))civHit(n,pf[0]*3.5,pf[1]*3.5)}
@@ -1432,7 +1440,7 @@ function tick(raw){
     if(G.finalWait&&G.state==='play'&&DQ.length===0&&dT<=0)finalReveal();
     if(G.rv&&G.state==='play')rvTick(dt);
     if(G.aiWait&&G.state==='play'&&DQ.length===0&&dT<=0)robotStart();
-    if(G.state==='play'&&!G.trans)robotTick(dt);updHaz(dt);updBags(dt);if(P.rig&&P.rig.root.userData.aura)for(const a of P.rig.root.userData.aura){const u=a.userData;if(u.orb){const t=G.t*u.sp+u.ph;a.position.set(u.c[0]+Math.cos(t)*u.r,u.c[1]+Math.sin(t*1.3)*u.r*.6,u.c[2]+Math.sin(t)*u.r)}else{const k=.8+.25*Math.sin(G.t*3.2+u.ph);a.scale.setScalar(u.sc*k);a.material.opacity=u.o*(.7+.3*k)}}for(let i=CORP.length-1;i>=0;i--){const c=CORP[i],r=c.n.rig.root;c.t+=raw;const k=Math.min(1,c.t*3);r.rotation.x=-PI/2*k;r.position.y=.15*k-(c.t>4?(c.t-4)*.6:0);if(c.t>5){scene.remove(r);CORP.splice(i,1)}}if(marks.visible||tmarks.visible){const k=.65+.35*Math.sin(G.t*6);for(const m of GLW)m.material.opacity=m.userData.op*k}
+    if(G.state==='play'&&!G.trans)robotTick(dt);updHaz(dt);updBags(dt);updWaves(dt);if(P.rig&&P.rig.root.userData.aura)for(const a of P.rig.root.userData.aura){const u=a.userData;if(u.orb){const t=G.t*u.sp+u.ph;a.position.set(u.c[0]+Math.cos(t)*u.r,u.c[1]+Math.sin(t*1.3)*u.r*.6,u.c[2]+Math.sin(t)*u.r)}else{const k=.8+.25*Math.sin(G.t*3.2+u.ph);a.scale.setScalar(u.sc*k);a.material.opacity=u.o*(.7+.3*k)}}for(let i=CORP.length-1;i>=0;i--){const c=CORP[i],r=c.n.rig.root;c.t+=raw;const k=Math.min(1,c.t*3);r.rotation.x=-PI/2*k;r.position.y=.15*k-(c.t>4?(c.t-4)*.6:0);if(c.t>5){scene.remove(r);CORP.splice(i,1)}}if(marks.visible||tmarks.visible){const k=.65+.35*Math.sin(G.t*6);for(const m of GLW)m.material.opacity=m.userData.op*k}
     if(G.infWait&&G.state==='play'&&DQ.length===0&&dT<=0)infStart();
     if(G.inf&&G.state==='play'&&!P.dead&&G.zone==='plat')infTick(dt);
     if(G.rally>0&&G.zone==='plat'&&G.phase==='fight'&&!P.dead){G.rT-=dt;if(G.rT<=0&&enemies.filter(e=>e.st!=='dead').length<13){G.rT=.45;const sd=G.rally%2,e=mkEnemy(G.rally%3?'zombie':'brawler',sd?1.4:ZX-1.4,rnd(-ZZ+1.5,ZZ-1.5));e.awake=true;e.max=e.hp=Math.round(e.hp*.4);G.rally--;const m=(G.ms||[])[0];if(m&&!m.done){m.text='빌런 연합 총동원령 · 남은 증원 '+G.rally+'명';drawMis()}}}
