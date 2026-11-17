@@ -1004,7 +1004,7 @@ const ITEMS={
   ext:{e:'🧯',n:'소화기',l:'소',c:0xd9302c,d:'주변 5.5m 빌런 전원 3초 기절',wv:0,wk:7,use(){dust(P.x,P.z,16);ringFx(P.x,1,P.z,0xffffff,3);for(const e of enemies)if(e.st!=='dead'&&Math.hypot(e.x-P.x,e.z-P.z)<5.5){e.st='stun';e.stT=3;e.slam=false;e.bang.visible=false;dust(e.x,e.z,4)}ftext(P.x,2.1,P.z,'소화기 분사!','crit');G.shake=.1}},
   rush:{e:'☕',n:'에너지 드링크',l:'에',c:0x9a4ad9,d:'15초간 공격 속도 +30%',wv:12,wk:9,use(){P.aspT=15;ftext(P.x,2.1,P.z,'공격 속도 업!','crit')}},
   };
-const GR=[{n:'일반',c:0xe8ece9,m:1},{n:'고급',c:0x5fe08a,m:1.35},{n:'희귀',c:0x4aa8ff,m:1.75},{n:'영웅',c:0xb07cff,m:2.2},{n:'전설',c:0xffd23a,m:2.8}];
+const GR=[{n:'일반',c:0xe8ece9,m:1},{n:'고급',c:0x5fe08a,m:1.35},{n:'희귀',c:0x4aa8ff,m:1.75},{n:'영웅',c:0xb07cff,m:2.2},{n:'전설',c:0xffd23a,m:3.1}];
 const SLOTS=[['danso','단소'],['glove','장갑'],['hat','모자'],['vest','조끼'],['shoe','신발'],['acc','장신구']];
 const GB={danso:[{n:'대나무 단소',atk:.06},{n:'흑단 단소',atk:.07,aspd:.045},{n:'강철 단소',atk:.07,aspd:.045,gb:1,t:'기동대 방패를 무시'},{n:'청옥 단소',atk:.07,ki:.1,aspd:.045},{n:'국악원 명품 단소',atk:.07,aspd:.06,sp:1,t:'필살기 피해 증가'},{n:'명인의 단소',atk:.08,aspd:.06,sp:1,note:1,t:'기본 공격마다 음파(♪)가 날아감 · 단소 피해의 35% · 관통'}],
   hat:[{n:'하늘색 캡',hp:10},{n:'등산모',hp:12},{n:'공사장 안전모',hp:10,def:.03},{n:'기관사 모자',hp:12,spd:.03},{n:'7호선 역장 모자',hp:14,def:.03,noto:.05}],
