@@ -1455,7 +1455,7 @@ function updEnemy(e,dt,busyN){
         else if(dist>5.5)go(e.spd,5.5);else setAnim(e,'idle');
       }else{
         const LA=e.look&&e.look.atk,W=(k,t)=>{e.st='wind';e.stT=t;e.atkKind=k;e.ang=want;e.long=false;sfx.warn()},idle=()=>setAnim(e,'idle');
-        if(e.boss){let k='';const B=e.look.bk;e.sumT-=dt;if(e.hp<e.max*.5&&!e.rage){e.rage=true;ftext(e.x,2.8,e.z,'분노!','hurt');{const d=BTALK[B];if(d&&G.state==='play')say([[e.look.bk==='chair'?'회장':e.look.name,d.h]])}ringFx(e.x,1.2,e.z,0xff5a3c,2.6);sfx.warn()}if(!e.robo&&!e.core){if(e.ubT===undefined)e.ubT=rnd(6,9);e.ubT-=dt}
+        if(e.boss){let k='';const B=e.look.bk;e.sumT-=dt;if(e.hp<e.max*.25&&!e.rage){e.rage=true;e.dm*=1.35;ringFx(e.x,1.2,e.z,0xff2a2a,2.6);G.shake=Math.max(G.shake,.12);ftext(e.x,2.8,e.z,'분노! 공격력 상승','hurt');{const d=BTALK[B];if(d&&G.state==='play')say([[e.look.bk==='chair'?'회장':e.look.name,d.h]])}ringFx(e.x,1.2,e.z,0xff5a3c,2.6);sfx.warn()}if(!e.robo&&!e.core){if(e.ubT===undefined)e.ubT=rnd(6,9);e.ubT-=dt}
           if(!e.robo&&!e.core&&e.ubT<=0&&e.cd<=0&&dist<8&&G.state==='play'){e.ubT=rnd(11,15)*(e.rage?.75:1);e.st='wind';e.stT=1.8;e.atkKind='ub';e.ang=want;e.long=false;const nm=UBN[B]||'필살 강타';banner('⚠ '+(e.look.bk==='chair'?'회장':e.look.name)+' — '+nm+'!','가드 불가 공격! 빨간 원 밖으로 피하세요',1.8);ftext(e.x,3.1,e.z,'⚠ 가드 불가!','hurt');ubRing(e,1);{const d=BTALK[B];if(d&&d.u){shout(e,d.u);e.tkT=Math.max(e.tkT||0,4)}}sfx.warn();tone(220,.5,'sawtooth',.12,110)}
           else if(e.cd<=0&&busyN<G.bl+1){const r=Math.random();
             if(B==='mask')k=dist<5.5?'slam':'';else if(B==='spider')k=dist<9?'jump':'';
