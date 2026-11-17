@@ -579,7 +579,7 @@ function mkEnemy(kind,x,z,look){
   if(L.boss){const n=G.bn|0;e.boss=true;e.hp=e.max=Math.round(720*(1+.4*n)*LF);e.dm=(1.4+.25*n)*(1+.015*(P.lv-1));e.spd=L.bk==='chair'?3.9:L.bk==='queen'?3.4:L.bk==='spider'?3:2.5;e.sumT=6}
   if(L.sheriff){const t=L.tier;e.sheriff=true;e.tier=t;e.hp=e.max=t===3?1300:t===2?400:230;e.spd=t===2?3.3:t===3?3.1:2.9;e.dm=(t===3?2:t===2?1.35:1)*(1+.05*wv);e.hp=e.max=Math.round(e.max*(1+.1*wv)*LF);e.dm*=1+.015*(P.lv-1);e.awake=true;e.cd=rnd(.3,1)}
   if(L.atk==='scoot')e.spd=2.5;
-  if(L.mid){e.mid=true;e.hp=e.max=Math.round(500*(1+.13*wv)*LF);e.dm*=1.3;e.spd=L.atk==='rider'?2.8:L.atk==='drunk'?1.45:L.atk==='case'?1.9:2.2;e.awake=true;e.sumT=4;e.cd=rnd(.8,1.4);if(L.atk==='drunk'&&G.state!=='gallery'){const m=mkEnemy('zombie',x+1,z+.5,LOOKS[1]);m.awake=true}}
+  if(L.mid){e.mid=true;e.hp=e.max=Math.round(380*(1+.13*wv)*LF);e.dm*=1.3;e.spd=L.atk==='rider'?2.8:L.atk==='drunk'?1.45:L.atk==='case'?1.9:2.2;e.awake=true;e.sumT=4;e.cd=rnd(.8,1.4);if(L.atk==='drunk'&&G.state!=='gallery'){const m=mkEnemy('zombie',x+1,z+.5,LOOKS[1]);m.awake=true}}
   collide(e,.3);rig.root.position.set(e.x,0,e.z);rig.root.rotation.y=e.ang;enemies.push(e);return e;
 }
 const npcs=[];
