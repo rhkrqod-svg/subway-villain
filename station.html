@@ -693,7 +693,7 @@ const HN='단소히어로',BTALK={
   chair:{h:'좋아요, 이제 몸이 데워졌습니다!',o:'크윽…',b:['계획대로입니다, 어르신.','여기까지 와 주셔서 감사합니다.','분장 벗으니 몸이 가볍네요!'],u:'회장의 주먹, 받아 보시죠!'}};
 const MTALK={selfie:['구독, 좋아요, 알림 설정~!','이 장면 떡상각이다!','라이브 켰어요 여러분~'],case:['비켜요 비켜! 비행기 놓친다고요!','캐리어 지나갑니다~!','면세점 가야 돼!'],drunk:['어이 김 대리! 한 잔 더!','2차 가자, 2차!','부장님이 쏜다~!'],rider:['배달 늦으면 별점 테러야!','비켜! 콜 밀렸어!','국물 쏟아진다~!'],guitar:['다음 곡 신청 받아요~','앵콜! 앵콜!','이 노래 내가 만들었어요~']};
 function shout(e,t){if(!e||!e.rig)return;if(e.bub){scene.remove(e.bub);e.bub.material.map.dispose();e.bub.material.dispose()}const W=1024,H=112;let tw=0;const tex=ctex(W,H,(c,w,h)=>{c.font='700 46px "Noto Sans KR",sans-serif';tw=Math.min(w-30,c.measureText(t).width+56);const x0=(w-tw)/2;c.fillStyle='rgba(255,255,255,.96)';c.strokeStyle=e.boss?'#ff8a00':'#ff5ad0';c.lineWidth=6;c.beginPath();const r=26,x1=x0+tw,y0=8,y1=h-8;c.moveTo(x0+r,y0);c.lineTo(x1-r,y0);c.quadraticCurveTo(x1,y0,x1,y0+r);c.lineTo(x1,y1-r);c.quadraticCurveTo(x1,y1,x1-r,y1);c.lineTo(x0+r,y1);c.quadraticCurveTo(x0,y1,x0,y1-r);c.lineTo(x0,y0+r);c.quadraticCurveTo(x0,y0,x0+r,y0);c.fill();c.stroke();c.fillStyle='#14161a';c.textAlign='center';c.textBaseline='middle';c.fillText(t,w/2,h/2+2)});
-  const sp=new T.Sprite(new T.SpriteMaterial({map:tex,depthTest:false,transparent:true}));sp.scale.set(.42*W/H,.42,1);sp.renderOrder=9;scene.add(sp);e.bub=sp;e.bubT=2.6}
+  const sp=new T.Sprite(new T.SpriteMaterial({map:tex,depthTest:false,transparent:true}));sp.scale.set(.8*W/H,.8,1);sp.renderOrder=9;scene.add(sp);e.bub=sp;e.bubT=2.6}
 const HINT=['잘하셨습니다. 아주… 계획대로네요.','하나 더 치웠군요. 아, 아닙니다. 혼잣말입니다.','간부가 또 줄었네요. …좋은 일이죠, 물론.'];
 const STAFF='역무원 (무전)',DRIVER='기관사 (방송)';
 const WIN=['역시 단소히어로님! 감사합니다.','깔끔하네요. 사례는 넉넉히 넣어 드렸습니다.','덕분에 살았습니다. 다음에도 부탁드립니다!','해결 확인했습니다. 수고하셨습니다!'];
@@ -1316,7 +1316,7 @@ function updEnemy(e,dt,busyN){
   if(e.intro>0&&e.st!=='dead'){e.intro-=dt;e.st='walk';setAnim(e,'idle');e.ang=angTo(e.ang,Math.atan2(P.x-e.x,P.z-e.z),.2);return}
   const dx=P.x-e.x,dz=P.z-e.z,dist=Math.hypot(dx,dz)||1e-4,want=Math.atan2(dx,dz);
   if(!e.awake&&dist<(e.harass?5:7.5)&&!G.freeze)e.awake=true;
-  if(e.bub){e.bubT-=dt;e.bub.position.set(e.x,e.y+(e.rig.root.scale.y||1)*2.35+.35,e.z);if(e.bubT<=0||e.st==='dead'&&e.bubT>1){scene.remove(e.bub);e.bub.material.map.dispose();e.bub.material.dispose();e.bub=null}}
+  if(e.bub){e.bubT-=dt;e.bub.position.set(e.x,e.y+(e.rig.root.scale.y||1)*2.3+.6,e.z);if(e.bubT<=0||e.st==='dead'&&e.bubT>1){scene.remove(e.bub);e.bub.material.map.dispose();e.bub.material.dispose();e.bub=null}}
   if((e.boss||e.mid)&&e.awake&&G.state==='play'&&e.st!=='dead'&&!e.core&&!e.robo){e.tkT=(e.tkT===undefined?rnd(4,6):e.tkT)-dt;if(e.tkT<=0){e.tkT=rnd(7,11);const TL=e.boss?(BTALK[e.look.bk]||{}).b:MTALK[e.look.atk];if(TL)shout(e,pick(TL))}}
   if(e.boss&&e.awake&&!e.said&&G.state==='play'){e.said=1;const d=BTALK[e.look.bk];if(d&&d.i)say([[e.look.name,d.i[0]],[HN,d.i[1]]])}
   if(G.zone==='plat'&&e.z<-ZZ+.62&&e.kz<-1.2&&(e.st==='hurt'||e.st==='down'||e.st==='dead'||e.st==='stun')){const p=props.find(q=>q.type==='psd'&&!q.dead&&abs(q.x-e.x)<1.13);if(p){breakProp(p);e.kz=0;if(e.st!=='dead'){e.hp=Math.max(1,e.hp-18);e.flash=1;e.bar.visible=true;ftext(e.x,e.y+2.1,e.z,'유리 충돌 18','crit')}G.hitstop=Math.max(G.hitstop,.07)}}
