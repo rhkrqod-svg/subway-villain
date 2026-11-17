@@ -861,7 +861,7 @@ function rvTick(dt){const v=G.rv;if(!v)return;v.t+=dt;const a=v.a;
   if(v.st===1&&v.t>1.7){v.st=2;const f=fwd(a?a.ang:0);flyPart(gSph(.3,.26,.24),0xa5304a,v.x+f[0]*.4,1.2,v.z+f[1]*.4,f[0]*5,3,f[1]*5,1.6);ftext(v.x,2.4,v.z,'뱃살… 패드?!','crit');tone(160,.2,'square',.12,80)}
   if(v.st===2&&v.t>2.5){v.st=3;const x=v.x,z=v.z;if(a){a.grab=0;allyReset(a)}
     for(const c of[0xa5304a,0xa5304a,0xa5304a,0x1b2340,0xe8b792,0x1a2136])debris(x+rnd(-.3,.3),rnd(.8,1.9),z+rnd(-.3,.3),7,c);spark(x,1.3,z,30,0xffd23a,8);ringFx(x,1,z,0xffd23a,4);ringFx(x,.2,z,0xffffff,5);dust(x,z,16);spFlash('boom',220);G.shake=Math.max(G.shake,.3);noise(.4,.3,500);tone(70,.6,'sawtooth',.2,40);
-    const CH=LOOKS.find(l=>l.bk==='chair'),be=mkEnemy('brawler',x,z,CH);be.hp=be.max=Math.round(be.hp*2);be.dm*=1.25;be.said=1;be.awake=true;be.cd=1.2;be.ang=Math.atan2(P.x-x,P.z-z);be.intro=1.9;be.bs=be.rig.root.scale.x;be.rig.root.scale.setScalar(be.bs*.72);v.be=be;G.bossName=CH.name;ftext(x,2.9,z,'옷이 찢어진다!','crit')}
+    const CH=LOOKS.find(l=>l.bk==='chair'),be=mkEnemy('brawler',x,z,CH);be.hp=be.max=Math.round(be.hp*2);be.dm*=1.45;be.said=1;be.awake=true;be.cd=1.2;be.ang=Math.atan2(P.x-x,P.z-z);be.intro=1.9;be.bs=be.rig.root.scale.x;be.rig.root.scale.setScalar(be.bs*.72);v.be=be;G.bossName=CH.name;ftext(x,2.9,z,'옷이 찢어진다!','crit')}
   if(v.st===3&&v.be){const k=clamp((v.t-2.5)/.5,0,1),be=v.be;be.rig.root.scale.setScalar(be.bs*(.72+.28*(1-(1-k)**3)));if(Math.random()<.25)ringFx(be.x,rnd(.4,2),be.z,0xffd23a,2)
     if(v.t>3.1&&!v.roar){v.roar=1;tone(90,.8,'sawtooth',.22,55);noise(.6,.25,300);G.shake=Math.max(G.shake,.25);ftext(be.x,3.2,be.z,'흐아아압!','hurt')}
     if(v.t>4.3){G.rv=null;say([['회장','후… 이제야 몸이 좀 풀리네. 맨손으로 상대해 드리죠.'],[HN,'단소는 거짓말을 하지 않네. 덤비게.']]);banner('최종 결전','빌런 연합 회장의 정체가 드러났다',4);sfx.warn();hud()}}}
@@ -952,15 +952,15 @@ function robotTick(dt){const R=RB;if(!R)return;R.t+=dt;const e=R.hit;
     else if(r<.42){const a=R.arms.find(q=>q.sd===(P.x>=R.x?1:-1));a.tx=clamp(P.x+P.vx*.35,1.2,ZX-1.2);a.tz=clamp(P.z+P.vz*.35,-ZZ+1,ZZ-1.2);a.st='raise';a.t=0;a.q0.copy(a.piv.quaternion);a.l0=a.len;a.q1.setFromUnitVectors(DOWNV,new T.Vector3(a.sd*.25,.75,-.45).normalize());a.l1=3.2;
       const g=new T.RingGeometry(1.45,1.75,32);g.rotateX(-PI/2);a.warn=hazMesh(g,0xff2a2a,.6);a.warn.position.set(a.tx,.05,a.tz);sfx.warn();
       if(R.rage&&Math.random()<.6){const b=R.arms.find(q=>q!==a);b.tx=clamp(a.tx+rnd(-3,3),1.2,ZX-1.2);b.tz=clamp(-a.tz*.6+rnd(-1,1),-ZZ+1,ZZ-1.2);b.st='raise';b.t=-.35;b.q0.copy(b.piv.quaternion);b.l0=b.len;b.q1.setFromUnitVectors(DOWNV,new T.Vector3(b.sd*.25,.75,-.45).normalize());b.l1=3.2;const g2=new T.RingGeometry(1.45,1.75,32);g2.rotateX(-PI/2);b.warn=hazMesh(g2,0xff2a2a,.6);b.warn.position.set(b.tx,.05,b.tz)}}
-    else if(r<.8){R.eye.material.color.setHex(0xffffff);setTimeout(()=>{if(RB)RB.eye.material.color.setHex(RB.rage?0xff00aa:0xff2a2a)},900);const dm=Math.round(18*(1+.06*((G.wave||1)-1)));hzBeam(false,0,clamp(P.z,-ZZ+1,ZZ-1),dm,.9);hzBeam(true,clamp(P.x,1,ZX-1),0,dm,1.25);ftext(R.x,7.6,R.z+1,'눈 광선!','hurt')}
-    else{const dm=Math.round(15*(1+.06*((G.wave||1)-1)));for(let i=0;i<(R.rage?8:5);i++){const x=clamp(P.x+rnd(-2.4,2.4),1,ZX-1),z=clamp(P.z+rnd(-1.8,1.8),-ZZ+1,ZZ-1);hzDrop(x,z,1+i*.14,dm)}ftext(R.x,7.6,R.z+1,'전조등 미사일!','hurt');
+    else if(r<.8){R.eye.material.color.setHex(0xffffff);setTimeout(()=>{if(RB)RB.eye.material.color.setHex(RB.rage?0xff00aa:0xff2a2a)},900);const dm=Math.round(21*(1+.06*((G.wave||1)-1)));hzBeam(false,0,clamp(P.z,-ZZ+1,ZZ-1),dm,.9);hzBeam(true,clamp(P.x,1,ZX-1),0,dm,1.25);ftext(R.x,7.6,R.z+1,'눈 광선!','hurt')}
+    else{const dm=Math.round(17*(1+.06*((G.wave||1)-1)));for(let i=0;i<(R.rage?8:5);i++){const x=clamp(P.x+rnd(-2.4,2.4),1,ZX-1),z=clamp(P.z+rnd(-1.8,1.8),-ZZ+1,ZZ-1);hzDrop(x,z,1+i*.14,dm)}ftext(R.x,7.6,R.z+1,'전조등 미사일!','hurt');
       if(enemies.filter(q=>!q.core&&q.st!=='dead').length<4)for(const sx of[1.5,ZX-1.5]){const z0=mkEnemy('zombie',sx,rnd(-2,2),LOOKS[0]);z0.awake=true}}}
   let stuck=null;
   for(const a of R.arms){a.t+=dt*(a.st==='stuck'?1:sp);
     if(a.st==='raise'){const k=clamp(a.t/.85,0,1);a.piv.quaternion.copy(a.q0).slerp(a.q1,k);setLen(a,a.l0+(a.l1-a.l0)*k);if(a.warn)a.warn.material.opacity=.35+.4*Math.abs(sin(a.t*14));if(a.t>=.85){const [q,l]=armAim(a,a.tx,.45,a.tz);a.q0.copy(a.piv.quaternion);a.q1.copy(q);a.l0=a.len;a.l1=l-.5;a.st='strike';a.t=0}}
     else if(a.st==='strike'){const k=clamp(a.t/.17,0,1);a.piv.quaternion.copy(a.q0).slerp(a.q1,k);setLen(a,a.l0+(a.l1-a.l0)*k);if(k>=1){a.st='stuck';a.t=0;if(a.warn){scene.remove(a.warn);a.warn=null}
         dust(a.tx,a.tz,16);debris(a.tx,.4,a.tz,12,0x9da29d);ringFx(a.tx,.3,a.tz,0xffe9a8,4.5);G.shake=Math.max(G.shake,.32);noise(.45,.35,160);tone(60,.4,'sawtooth',.22,35);
-        if(!P.dead&&P.y<1.3&&Math.hypot(P.x-a.tx,P.z-a.tz)<1.8)hurtPlayer({x:a.tx,z:a.tz,bang:{}},Math.round(28*(1+.06*((G.wave||1)-1))));ftext(a.tx,2,a.tz,'지금! 주먹을 공격','sys')}}
+        if(!P.dead&&P.y<1.3&&Math.hypot(P.x-a.tx,P.z-a.tz)<1.8)hurtPlayer({x:a.tx,z:a.tz,bang:{}},Math.round(32*(1+.06*((G.wave||1)-1))));ftext(a.tx,2,a.tz,'지금! 주먹을 공격','sys')}}
     else if(a.st==='stuck'){stuck=a;if(a.t>(R.rage?2.1:2.7)){a.st='back';a.t=0;a.q0.copy(a.piv.quaternion);a.l0=a.len;a.q1.setFromUnitVectors(DOWNV,new T.Vector3(a.sd*.3,-1,.35).normalize());a.l1=3.2}}
     else if(a.st==='back'){const k=clamp(a.t/.6,0,1);a.piv.quaternion.copy(a.q0).slerp(a.q1,k);setLen(a,a.l0+(a.l1-a.l0)*k);if(k>=1){a.st='rest'}}}
   if(e.st!=='dead'){if(stuck){e.cx=stuck.tx;e.cz=stuck.tz;e.cy=0}else{e.cx=R.x;e.cz=-ZZ+.6;e.cy=7}e.bar.visible=false}}
@@ -975,11 +975,11 @@ function robotUlt(R){const safe=[];for(let k=0;k<2;k++){let x,z,t=0;do{x=rnd(4,Z
 function robotFx(R,dt,sp){const v=new T.Vector3();
   if(R.lz){const L=R.lz;L.t+=dt;R.eye.getWorldPosition(v);if(L.t>0){const s=(R.rage?5.6:4.4)*dt,dx=P.x-L.gx,dz=P.z-L.gz,d=Math.hypot(dx,dz)||1;L.gx+=dx/d*Math.min(s,d);L.gz+=dz/d*Math.min(s,d)}
     const ex=L.gx-v.x,ey=.05-v.y,ez=L.gz-v.z,len=Math.hypot(ex,ey,ez)||1;L.m.position.set(v.x+ex/2,v.y+ey/2,v.z+ez/2);L.m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),new T.Vector3(ex/len,ey/len,ez/len));L.m.scale.set(L.t>0?1:.25,len,L.t>0?1:.25);L.m.material.opacity=L.t>0?.9:.3+.3*Math.abs(sin(L.t*30));L.dg.position.set(L.gx,.06,L.gz);
-    if(L.t>0){if(Math.random()<dt*20)spark(L.gx,.3,L.gz,3,0xff6a3a,4);L.tk-=dt;if(L.tk<=0&&!P.dead&&P.y<1.1&&Math.hypot(P.x-L.gx,P.z-L.gz)<.8){L.tk=.3;hurtPlayer({x:L.gx,z:L.gz,bang:{}},Math.round(8*RW()));ftext(P.x,2.2,P.z,'레이저!','hurt')}}
+    if(L.t>0){if(Math.random()<dt*20)spark(L.gx,.3,L.gz,3,0xff6a3a,4);L.tk-=dt;if(L.tk<=0&&!P.dead&&P.y<1.1&&Math.hypot(P.x-L.gx,P.z-L.gz)<.8){L.tk=.3;hurtPlayer({x:L.gx,z:L.gz,bang:{}},Math.round(9*RW()));ftext(P.x,2.2,P.z,'레이저!','hurt')}}
     if(L.t>(R.rage?3.2:2.6)){R.fx.remove(L.m);R.fx.remove(L.dg);R.lz=null;R.eye.material.color.setHex(R.rage?0xff00aa:0xff2a2a)}}
   if(R.ub){const U=R.ub;U.t+=dt;U.ov.material.opacity=.15+.25*Math.abs(sin(U.t*(4+U.t*4)));G.shake=Math.max(G.shake,.03+U.t*.02);
     if(U.t>=2.8){const inSafe=U.safe.some(s=>Math.hypot(P.x-s.x,P.z-s.z)<1.6);for(let i=0;i<10;i++){const x=rnd(2,ZX-2),z=rnd(-ZZ+1,ZZ-1);ringFx(x,.3,z,0xff5a2a,4);spark(x,1,z,12,0xffb340,7)}debris(P.x,.4,P.z,10,0x9da29d);G.shake=Math.max(G.shake,.5);G.hitstop=Math.max(G.hitstop,.1);noise(1,.35,140);tone(40,1,'sawtooth',.25,25);
-      if(!P.dead){if(inSafe)ftext(P.x,2.4,P.z,'회피 성공!','sys');else{hurtPlayer({x:R.x,z:-ZZ,bang:{}},Math.round(42*RW()),true);P.vy=6}}
+      if(!P.dead){if(inSafe)ftext(P.x,2.4,P.z,'회피 성공!','sys');else{hurtPlayer({x:R.x,z:-ZZ,bang:{}},Math.round(48*RW()),true);P.vy=6}}
       R.fx.remove(U.ov);for(const [g,f] of U.rs){R.fx.remove(g);R.fx.remove(f)}R.ub=null;R.cd=1.6;R.eye.material.color.setHex(R.rage?0xff00aa:0xff2a2a)}}}
 function setLen(a,l){a.len=l;a.arm.scale.y=l;a.fist.position.y=-l}
 function robotDown(){const R=RB;if(!R)return;R.st='dead';R.t=0;G.aiOn=false;hazClear();if(R.fx){scene.remove(R.fx);R.fx=null}R.lz=null;R.ub=null;for(const a of R.arms)if(a.warn){scene.remove(a.warn);a.warn=null}G.finalDone=true;addScore(5000);
