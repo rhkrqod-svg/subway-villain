@@ -560,7 +560,7 @@ const LOOKS=[
   {name:'꽃치마아저씨',kind:'brawler',w:0,boss:true,bk:'flora',pc:0xf3efe6,ring:0xff8a00,desc:'보스. 흰 블라우스에 꽃무늬 치마, 빨간 구두, 분홍 스카프. 핸드백을 던지고 붙으면 크게 휘두른다',spec:()=>({skin:0xc99a78,top:0xf4f4f1,sleeve:0xf4f4f1,pants:0xecd9b8,skirt:0xf3efe6,shoe:0xb0302a,hair:0x2a2420,glasses:true,tie:0xf0b3c4,angry:true,scale:1.34})},
   {name:'우산할아버지',kind:'brawler',w:0,boss:true,bk:'umb',ring:0xff8a00,desc:'보스. 밀짚모자에 회색 수염, 민소매와 반바지. 노란 우산으로 앞쪽 공격을 막는다. 뒤나 공격 직후를 노려야 한다',spec:()=>({skin:0xb9805a,top:0xe9e4d6,sleeve:0xb9805a,bare:true,vest:0x6b6a52,pants:0x3c5a85,shorts:true,shoe:0x2a2a2a,hair:0x5d5a54,bucket:0xcbb08f,beard:0x8d8a84,weapon:'umb',angry:true,scale:1.3})},
   {name:'확성기 전도사',kind:'brawler',w:0,boss:true,bk:'cult',ring:0xff8a00,desc:'보스. 빨간 모자에 빨간 긴 코트. 확성기 고함으로 주변을 밀쳐내고 폰좀비를 불러낸다',spec:()=>({skin:0xd9b08c,top:0xc0282d,sleeve:0xc0282d,coat:0xc0282d,pants:0x1c1c20,shoe:0x0e0e10,hair:0xb9b9b4,bucket:0xa8222a,weapon:'mega',angry:true,scale:1.32})},
-  {name:'회장 (빌런 연합 두목)',kind:'brawler',w:0,boss:true,bk:'chair',ring:0xffd23a,desc:'최종 보스. 뚱뚱한 공익근무요원 1호는 분장이었다. 마스크와 옷을 벗으면 근육질 맨손 격투가. 주먹 연타, 훅, 밀치기, 돌진, 점프로 몰아친다. 쓰러뜨리면 진짜 흑막이 드러난다',spec:()=>({skin:0xc98a5e,top:0xc98a5e,sleeve:0xc98a5e,bare:true,pants:0x4a5730,shoe:0x15171a,hair:0x15151a,belt:0x2a2d22,camoLeg:true,muscle:true,angry:true,scale:1.32})},
+  {name:'회장 (빌런 연합 두목)',kind:'brawler',w:0,boss:true,bk:'chair',ring:0xffd23a,desc:'최종 보스. 뚱뚱한 공익근무요원 1호는 분장이었다. 마스크와 옷을 벗으면 근육질 맨손 격투가. 주먹 연타, 훅, 밀치기, 돌진, 점프로 몰아친다. 쓰러뜨리면 진짜 흑막이 드러난다',spec:()=>({skin:0xc98a5e,top:0xc98a5e,sleeve:0xc98a5e,bare:true,pants:0x4a5730,shoe:0x15171a,hair:0x15151a,belt:0x2a2d22,camoLeg:true,muscle:true,angry:true,scale:1.6})},
   {name:'시민',kind:'npc',w:0,desc:'일반 승객. 싸움이 나면 도망가고, 때리면 악명이 오른다',spec:()=>{let s;do{s=npcSpec()}while(s.tie||s.vest);return s}},
   {name:'교복 학생',kind:'npc',w:0,desc:'시민. 교복에 넥타이, 큰 책가방. 싸움이 나면 도망간다',spec:NPCK[0]},
   {name:'어르신',kind:'npc',w:0,desc:'시민. 흰머리에 조끼 차림. 천천히 다니고, 싸움이 나면 몸을 피한다',spec:NPCK[1]},
@@ -569,7 +569,7 @@ const LOOKS=[
   {name:'공익근무요원 (2호)',kind:'npc',w:0,ring:0x4aa8ff,desc:'동료. 세 번째 보스에게 붙잡혀 있다가 구출하면 합류. 키 크고 마른 체형에 네모 안경. 1호와 함께 좌우에서 싸운다',spec:()=>Object.assign({},ALLYSPEC[1])}];
 function pickLook(kind){const c=LOOKS.filter(l=>l.kind===kind);let r=Math.random()*c.reduce((a,l)=>a+l.w,0);for(const l of c){r-=l.w;if(r<=0)return l}return c[0]}
 function mkEnemy(kind,x,z,look){
-  const L=look||pickLook(kind),spec=L.spec();kind=L.kind;spec.ring=L.ring||(kind==='npc'?0x35d06a:0xff3b2a);
+  const L=look||pickLook(kind),spec=L.spec();if(L.boss&&L.bk!=='chair')spec.scale=(spec.scale||1)*1.12;kind=L.kind;spec.ring=L.ring||(kind==='npc'?0x35d06a:0xff3b2a);
   const rig=makeRig(spec);scene.add(rig.root);
   const bar=new T.Group();const bg=new T.Mesh(gBox(.52,.06,.01),new T.MeshBasicMaterial({color:0x101214}));const fg=new T.Mesh(geo('hb',()=>{const g=new T.PlaneGeometry(.5,.04);g.translate(.25,0,0);return g}),new T.MeshBasicMaterial({color:0xff5a4a}));fg.position.set(-.25,0,.01);bar.add(bg);bar.add(fg);bar.visible=false;scene.add(bar);
   const bang=new T.Sprite(new T.SpriteMaterial({map:bangTex,depthTest:false}));bang.scale.set(.42,.42,1);bang.visible=false;scene.add(bang);
@@ -591,8 +591,8 @@ function mkNpc(){
 function scare(x,z,r){for(const n of npcs){if(Math.hypot(n.x-x,n.z-z)<r){if(n.victim)continue;n.scared=rnd(3,4.5);n.wait=0}}}
 /* until a villain notices the hero, it bothers the citizen next to it (no speech, motion only) */
 /* 공익근무요원: rescued from the first boss, then follows the hero and fights beside him */
-const ALLYSPEC=[{skin:0xe8b792,top:0xa5304a,sleeve:0xa5304a,pants:0x1a2136,shoe:0x0c0d10,cap:0x1b2340,hair:0x15151a,belly:true,fat:true,scale:1.08,ring:0x4aa8ff,pubsvc:1},
-  {skin:0xe6bd9c,top:0xa5304a,sleeve:0xa5304a,pants:0x1a2136,shoe:0x15171a,cap:0x1b2340,hair:0x15151a,scale:1.14,slim:true,ring:0x4aa8ff,pubsvc:2}];
+const ALLYSPEC=[{skin:0xe8b792,top:0xa5304a,sleeve:0xa5304a,pants:0x1a2136,shoe:0x0c0d10,cap:0x1b2340,hair:0x15151a,belly:true,fat:true,scale:.97,ring:0x4aa8ff,pubsvc:1},
+  {skin:0xe6bd9c,top:0xa5304a,sleeve:0xa5304a,pants:0x1a2136,shoe:0x15171a,cap:0x1b2340,hair:0x15151a,scale:1.02,slim:true,ring:0x4aa8ff,pubsvc:2}];
 const allies=[null,null];
 function allyGet(i){if(!allies[i]){const rig=makeRig(ALLYSPEC[i]);scene.add(rig.root);allies[i]={kind:'npc',ally:true,idx:i,seed:3+i,rig,x:0,y:0,z:0,ang:0,anim:'idle',animT:0,phase:0,hurtT:0,scared:0,wait:0,st:'off',cd:0,t:0,victim:null,cower:false};rig.root.visible=false}return allies[i]}
 function allyReset(a){if(a){a.st='off';a.victim=null;a.cower=false;a.rig.root.visible=false}}
@@ -643,7 +643,7 @@ function drawMap(){
   for(const e of enemies)if(e.st!=='dead'){mg.fillStyle=e.sheriff?'#4d8dff':'#ff5a4a';mg.beginPath();mg.arc(e.x*S,oy+(e.z+ZZ)*SZ,2.4,0,7);mg.fill()}
   mg.save();mg.translate(P.x*S,oy+(P.z+ZZ)*SZ);mg.rotate(Math.atan2(cos(P.ang),sin(P.ang)));mg.fillStyle='#7fd0ff';mg.strokeStyle='#fff';mg.lineWidth=1;mg.beginPath();mg.moveTo(6,0);mg.lineTo(-4,-4);mg.lineTo(-2,0);mg.lineTo(-4,4);mg.closePath();mg.fill();mg.stroke();mg.restore();
 }
-function dropEnemy(e){scene.remove(e.rig.root);scene.remove(e.bar);scene.remove(e.bang);for(const k in e.rig.M)e.rig.M[k].dispose();e.bang.material.dispose()}
+function dropEnemy(e){if(e.bub){scene.remove(e.bub);e.bub=null}scene.remove(e.rig.root);scene.remove(e.bar);scene.remove(e.bang);for(const k in e.rig.M)e.rig.M[k].dispose();e.bang.material.dispose()}
 function clearEnemies(){for(const e of enemies)if(e.ubM){scene.remove(e.ubM,e.ubE)}for(const f of fuses)scene.remove(f.m);fuses.length=0;for(const e of enemies)dropEnemy(e);enemies=[];for(const n of npcs){n.victim=null;n.cower=false}}
 function banner(a,b,t=2.6){const el=$('banner');el.firstElementChild.textContent=a;el.lastElementChild.textContent=b||'';el.style.opacity=1;G.bannerT=t}
 /* ---------- missions: a few random objectives per stage ---------- */
@@ -682,15 +682,18 @@ function say(lines){for(const l of lines)DQ.push(l);if(dT<=0)dNext()}
 function sayClear(){DQ.length=0;dT=0;$('dlg').classList.remove('on')}
 $('dlg').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();dNext()});
 const HN='단소히어로',BTALK={
-  mask:{i:['이 역 캐리어는 전부 내 거야. 네 단소도 놓고 가.','남의 물건엔 손대는 게 아니오.'],h:'칫, 짐이 무겁네…!',o:'내… 내 캐리어…'},
+  mask:{i:['너가 이 지하철 매입했냐? 왜 나한테만 지랄이야~','남의 물건엔 손대는 게 아니오.'],h:'왜 나한테만 지랄이야~!! 진짜 화났다!',o:'내… 내 캐리어… 이 지하철 매입하려고 했는데…',b:['너가 이 지하철 매입했냐?','왜 나한테만 지랄이야~','내 캐리어 건들지 마!'],u:'이 지하철, 내가 매입한다!!'},
   spider:{i:['바닥은 너희나 밟아. 난 위에서 논다.','내려오시오. 손잡이는 잡으라고 있는 거요.'],h:'아직 안 떨어졌어!',o:'…바닥, 차갑네.'},
-  thumb:{i:['오~ 어르신 멋지다, 잘한다 잘한다~ 따봉!','…칭찬은 됐소.'],h:'하하, 이제 좀 화나는데?',o:'이건… 따봉 못 주겠네…'},
-  lady:{i:['거기 내 자리야. 가방 올려놨잖아, 안 보여?','자리는 사람이 앉는 거요.'],h:'어머, 이 영감이!',o:'내 자리… 맡아 놨는데…'},
-  flora:{i:['내 스타일에 불만 있어? 이 칸은 전부 내 무대야.','옷은 자유지만 민폐는 아니오.'],h:'핸드백 맛 좀 볼래!',o:'구두 굽이… 나갔어…'},
-  umb:{i:['젊은 것들은 몰라. 우산은 이렇게 쓰는 거야.','같은 세대끼리 이러지 맙시다, 영감.'],h:'허리가… 아니, 아직 멀쩡해!',o:'…자네 단소, 제법이구먼.'},
-  cult:{i:['방송은 내가 잡았다! 모두 내 말을 들어라!','지하철에선 조용히 하는 거요.'],h:'더 크게! 더 크게 외쳐라!',o:'방송은… 내가 잡은 게… 아니었어…'},
+  thumb:{i:['당신이 최고야??! 꼼짝 못 해~!!','…칭찬은 됐소.'],h:'재밌자누~ 이제 진짜 시작이자누~',o:'당신이… 최고야… 따봉…',b:['당신이 최고야??!','꼼짝 못 해~!!','재밌자누~','따봉 받아라~!'],u:'따봉 폭탄이자누~!!'},
+  lady:{i:['어머 어머, 거기 내 자리야! 껌 붙여 놨잖아!','자리는 사람이 앉는 거요.'],h:'어머, 이 영감이! 껌 터진다!',o:'내 자리… 맡아 놨는데…',b:['딱! 딱! (껌 씹는 소리)','어디서 영감이 새치기야!','크록스 날아간다~!'],u:'풍선껌 빵~ 터진다~!'},
+  flora:{i:['내 치마 예쁘지? 이 칸은 내 런웨이야~','옷은 자유지만 민폐는 아니오.'],h:'핸드백 맛 좀 볼래!',o:'구두 굽이… 나갔어…',b:['구두 굽 조심해~','꽃은 밟으면 안 돼~','핸드백 날아간다!'],u:'꽃잎 폭풍 런웨이~!'},
+  umb:{i:['내가 의왕 깡패할아버지니라~','같은 세대끼리 이러지 맙시다, 영감.'],h:'우루르르쾅쾅쾅!! 이제 화났느니라!',o:'…자네 단소, 제법이구먼. 의왕에 놀러 오게.',b:['내가 의왕 깡패할아버지니라~','우루르르쾅쾅쾅!','우산 맛 좀 보거라!'],u:'우루르르쾅쾅쾅~!!'},
+  cult:{i:['회개하라! 단소 든 영감도 회개하라!','지하철에선 조용히 하는 거요.'],h:'더 크게! 더 크게 외쳐라!',o:'방송은… 내가 잡은 게… 아니었어…',b:['회개하라~!!','종점이 가까웠다!','확성기 볼륨 최대!'],u:'천벌이 내린다아아!!'},
   queen:{i:['회장님 다음은 나야. 이 승강장이 내 무대지.','춤은 집에서 추시오.'],h:'템포 올린다!',o:'회장님은… 네 바로 곁에…'},
-  chair:{h:'좋아요, 이제 몸이 데워졌습니다!',o:'크윽…'}};
+  chair:{h:'좋아요, 이제 몸이 데워졌습니다!',o:'크윽…',b:['계획대로입니다, 어르신.','여기까지 와 주셔서 감사합니다.','분장 벗으니 몸이 가볍네요!'],u:'회장의 주먹, 받아 보시죠!'}};
+const MTALK={selfie:['구독, 좋아요, 알림 설정~!','이 장면 떡상각이다!','라이브 켰어요 여러분~'],case:['비켜요 비켜! 비행기 놓친다고요!','캐리어 지나갑니다~!','면세점 가야 돼!'],drunk:['어이 김 대리! 한 잔 더!','2차 가자, 2차!','부장님이 쏜다~!'],rider:['배달 늦으면 별점 테러야!','비켜! 콜 밀렸어!','국물 쏟아진다~!'],guitar:['다음 곡 신청 받아요~','앵콜! 앵콜!','이 노래 내가 만들었어요~']};
+function shout(e,t){if(!e||!e.rig)return;if(e.bub){scene.remove(e.bub);e.bub.material.map.dispose();e.bub.material.dispose()}const W=1024,H=112;let tw=0;const tex=ctex(W,H,(c,w,h)=>{c.font='700 46px "Noto Sans KR",sans-serif';tw=Math.min(w-30,c.measureText(t).width+56);const x0=(w-tw)/2;c.fillStyle='rgba(255,255,255,.96)';c.strokeStyle=e.boss?'#ff8a00':'#ff5ad0';c.lineWidth=6;c.beginPath();const r=26,x1=x0+tw,y0=8,y1=h-8;c.moveTo(x0+r,y0);c.lineTo(x1-r,y0);c.quadraticCurveTo(x1,y0,x1,y0+r);c.lineTo(x1,y1-r);c.quadraticCurveTo(x1,y1,x1-r,y1);c.lineTo(x0+r,y1);c.quadraticCurveTo(x0,y1,x0,y1-r);c.lineTo(x0,y0+r);c.quadraticCurveTo(x0,y0,x0+r,y0);c.fill();c.stroke();c.fillStyle='#14161a';c.textAlign='center';c.textBaseline='middle';c.fillText(t,w/2,h/2+2)});
+  const sp=new T.Sprite(new T.SpriteMaterial({map:tex,depthTest:false,transparent:true}));sp.scale.set(.42*W/H,.42,1);sp.renderOrder=9;scene.add(sp);e.bub=sp;e.bubT=2.6}
 const HINT=['잘하셨습니다. 아주… 계획대로네요.','하나 더 치웠군요. 아, 아닙니다. 혼잣말입니다.','간부가 또 줄었네요. …좋은 일이죠, 물론.'];
 const STAFF='역무원 (무전)',DRIVER='기관사 (방송)';
 const WIN=['역시 단소히어로님! 감사합니다.','깔끔하네요. 사례는 넉넉히 넣어 드렸습니다.','덕분에 살았습니다. 다음에도 부탁드립니다!','해결 확인했습니다. 수고하셨습니다!'];
@@ -1313,6 +1316,8 @@ function updEnemy(e,dt,busyN){
   if(e.intro>0&&e.st!=='dead'){e.intro-=dt;e.st='walk';setAnim(e,'idle');e.ang=angTo(e.ang,Math.atan2(P.x-e.x,P.z-e.z),.2);return}
   const dx=P.x-e.x,dz=P.z-e.z,dist=Math.hypot(dx,dz)||1e-4,want=Math.atan2(dx,dz);
   if(!e.awake&&dist<(e.harass?5:7.5)&&!G.freeze)e.awake=true;
+  if(e.bub){e.bubT-=dt;e.bub.position.set(e.x,e.y+(e.rig.root.scale.y||1)*2.35+.35,e.z);if(e.bubT<=0||e.st==='dead'&&e.bubT>1){scene.remove(e.bub);e.bub.material.map.dispose();e.bub.material.dispose();e.bub=null}}
+  if((e.boss||e.mid)&&e.awake&&G.state==='play'&&e.st!=='dead'&&!e.core&&!e.robo){e.tkT=(e.tkT===undefined?rnd(4,6):e.tkT)-dt;if(e.tkT<=0){e.tkT=rnd(7,11);const TL=e.boss?(BTALK[e.look.bk]||{}).b:MTALK[e.look.atk];if(TL)shout(e,pick(TL))}}
   if(e.boss&&e.awake&&!e.said&&G.state==='play'){e.said=1;const d=BTALK[e.look.bk];if(d&&d.i)say([[e.look.name,d.i[0]],[HN,d.i[1]]])}
   if(G.zone==='plat'&&e.z<-ZZ+.62&&e.kz<-1.2&&(e.st==='hurt'||e.st==='down'||e.st==='dead'||e.st==='stun')){const p=props.find(q=>q.type==='psd'&&!q.dead&&abs(q.x-e.x)<1.13);if(p){breakProp(p);e.kz=0;if(e.st!=='dead'){e.hp=Math.max(1,e.hp-18);e.flash=1;e.bar.visible=true;ftext(e.x,e.y+2.1,e.z,'유리 충돌 18','crit')}G.hitstop=Math.max(G.hitstop,.07)}}
   if(e.y>0||e.vy>0){e.vy-=19*dt;e.y+=e.vy*dt;if(e.y<=0){e.y=0;e.vy=0;if(e.st==='down'||e.st==='dead'){dust(e.x,e.z,4);G.shake=Math.max(G.shake,.05)}}}
@@ -1331,7 +1336,7 @@ function updEnemy(e,dt,busyN){
       }else{
         const LA=e.look&&e.look.atk,W=(k,t)=>{e.st='wind';e.stT=t;e.atkKind=k;e.ang=want;e.long=false;sfx.warn()},idle=()=>setAnim(e,'idle');
         if(e.boss){let k='';const B=e.look.bk;e.sumT-=dt;if(e.hp<e.max*.5&&!e.rage){e.rage=true;e.spd*=1.25;ftext(e.x,2.8,e.z,'분노!','hurt');{const d=BTALK[B];if(d&&G.state==='play')say([[e.look.bk==='chair'?'회장':e.look.name,d.h]])}ringFx(e.x,1.2,e.z,0xff5a3c,2.6);sfx.warn()}if(!e.robo&&!e.core){if(e.ubT===undefined)e.ubT=rnd(6,9);e.ubT-=dt}
-          if(!e.robo&&!e.core&&e.ubT<=0&&e.cd<=0&&dist<8&&G.state==='play'){e.ubT=rnd(11,15)*(e.rage?.75:1);e.st='wind';e.stT=1.8;e.atkKind='ub';e.ang=want;e.long=false;const nm=UBN[B]||'필살 강타';banner('⚠ '+(e.look.bk==='chair'?'회장':e.look.name)+' — '+nm+'!','가드 불가 공격! 빨간 원 밖으로 피하세요',1.8);ftext(e.x,3.1,e.z,'⚠ 가드 불가!','hurt');ubRing(e,1);sfx.warn();tone(220,.5,'sawtooth',.12,110)}
+          if(!e.robo&&!e.core&&e.ubT<=0&&e.cd<=0&&dist<8&&G.state==='play'){e.ubT=rnd(11,15)*(e.rage?.75:1);e.st='wind';e.stT=1.8;e.atkKind='ub';e.ang=want;e.long=false;const nm=UBN[B]||'필살 강타';banner('⚠ '+(e.look.bk==='chair'?'회장':e.look.name)+' — '+nm+'!','가드 불가 공격! 빨간 원 밖으로 피하세요',1.8);ftext(e.x,3.1,e.z,'⚠ 가드 불가!','hurt');ubRing(e,1);{const d=BTALK[B];if(d&&d.u){shout(e,d.u);e.tkT=Math.max(e.tkT||0,4)}}sfx.warn();tone(220,.5,'sawtooth',.12,110)}
           else if(e.cd<=0&&busyN<G.bl+1){const r=Math.random();
             if(B==='mask')k=dist<5.5?'slam':'';else if(B==='spider')k=dist<9?'jump':'';
             else if(B==='thumb'||B==='lady'||B==='flora')k=dist>1.8&&dist<9?'throw':dist<=1.8?(B==='lady'?'push':B==='flora'?'swing':'punch'):'';
