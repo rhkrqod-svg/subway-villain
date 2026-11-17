@@ -742,9 +742,9 @@ function setZone(z){
   for(const n of npcs){n.x=rnd(3,ZX-3);n.z=rnd(-(ZZ-.6),ZZ-.6);n.wait=rnd(1,5);n.scared=0;n.hurtT=0;collide(n,.3)}
 }
 function spawnTrain(){
-  const s=G.wave,per=Math.min(2,1+Math.floor(s/3)),SP=LOOKS.find(l=>l.name==='쩍벌남'),sc=Math.random()<.6?1+Math.floor(Math.random()*2):0;
+  const s=G.wave,per=Math.min(2,1+Math.floor(s/3)),SP=LOOKS.find(l=>l.name==='쩍벌남'),sc=Math.random()<.25?1+Math.floor(Math.random()*2):0;
   for(let c=0;c<3;c++){const n=c===2?Math.max(1,per-2):per;for(let i=0;i<n;i++)mkEnemy(i%2?'brawler':'zombie',c*18+rnd(c===0?13.5:2.5,15.5),rnd(-.8,.8));
-    if(c===sc-1)for(let i=0;i<2;i++)mkEnemy('brawler',c*18+rnd(c===0?13.5:4,14),rnd(-.8,.8),SP)}
+    if(c===sc-1)for(let i=0;i<1;i++)mkEnemy('brawler',c*18+rnd(c===0?13.5:4,14),rnd(-.8,.8),SP)}
   {const c=1+Math.floor(Math.random()*2);spawnMid(c*18+rnd(5,13),rnd(-.6,.6))}
   const vs=enemies.filter(e=>e.look.h);npcs.forEach((v,i)=>{const e=vs[vs.length-1-i];if(!e)return;v.x=clamp(e.x+(i%2?.95:-.95),1,ZX-1);v.z=clamp(e.z+rnd(-.2,.2),-.9,.9);collide(v,.3);e.harass=v;v.victim=e;v.wait=0;v.scared=0;v.hurtT=0;e.hx=e.x;e.hz=e.z;v.hx=v.x;v.hz=v.z});
   const ms=[];if(sc&&Math.random()<.4)ms.push(mkMis('spread',{g:1,text:sc+'번 칸 쩍벌남 정리'}));
