@@ -272,6 +272,9 @@ function makeRig(s){
     {const c=part(chest,C(),lg,.105,.1,.138,false);c.rotation.z=PI/4;part(chest,gBox(.03,.007,.004),lg,.135,.094,.132,false)}
     for(const dx of[-.02,.02]){const c=part(chest,C(),lg,dx,.2,-.128,false);c.rotation.set(0,PI,PI/4)}
     for(const z of[.2,.27,.34,.41])part(wp,gSph(.008),dark,0,.019,z,false);}
+  if(s.aura&&typeof glowTex!=='undefined'){root.userData.aura=[];const AP={danso:[['wpn',0,0,.28,.62]],glove:[['lHand',0,0,0,.36],['rHand',0,0,0,.36]],hat:[['head',0,.3,0,.62]],vest:[['chest',0,.08,0,.8]],shoe:[['lFoot',0,-.02,.05,.4],['rFoot',0,-.02,.05,.4]],acc:[['chest',0,-.02,.12,.42]]};
+    for(const [sl,g] of s.aura)for(const [jn,x,y,z,sc] of AP[sl]||[]){const c=g>=4?0xffcf3a:0xb27cff,sp=new T.Sprite(new T.SpriteMaterial({map:glowTex,color:c,transparent:true,opacity:.75,blending:T.AdditiveBlending,depthWrite:false}));sp.position.set(x,y,z);sp.scale.setScalar(sc);sp.userData={sc,o:.75,ph:Math.random()*6};J[jn].add(sp);root.userData.aura.push(sp);
+      if(g>=4)for(let i=0;i<2;i++){const f=new T.Sprite(new T.SpriteMaterial({map:glowTex,color:0xfff2a0,transparent:true,opacity:.9,blending:T.AdditiveBlending,depthWrite:false}));f.scale.setScalar(sc*.22);f.userData={orb:1,c:[x,y,z],r:sc*.42,ph:i*PI,sp:3+i};J[jn].add(f);root.userData.aura.push(f)}}}
   CUR=OUT;
   if(s.ring!==undefined){const rg=new T.Mesh(geo('gring',()=>{const g=new T.RingGeometry(.36,.46,28);g.rotateX(-PI/2);return g}),new T.MeshBasicMaterial({color:s.ring,transparent:true,opacity:.8,depthWrite:false}));rg.position.y=.03;root.add(rg)}
   root.scale.setScalar(s.scale||1);if(s.fat){const k=s.scale||1;root.scale.set(k*1.22,k,k*1.18)}if(s.slim)root.scale.set(.93,1.16,.86);
@@ -517,7 +520,11 @@ const HOOD=[0x4d5a6b,0x5d4a78,0x3d6b5c,0x775a3c,0x7d3f44,0x3f4650],SHIRT=[0x6b3f
 const fwd=a=>[sin(a),cos(a)];
 function angTo(a,b,k){let d=b-a;while(d>PI)d-=PI*2;while(d<-PI)d+=PI*2;return a+d*k}
 const SK=[0xe2ad84,0xd69a70,0xf0c4a0];
-function npcSpec(){const sp={skin:pick(SK),top:pick([0x8fa3b8,0xc9b79a,0x7d8f7a,0xb58a8a,0x5f6f8f,0xd0d3d6]),pants:pick([0x2f3640,0x4a4338,0x39424e]),hair:pick([0x1c1c1c,0x3a2a1c,0x6a6a6a]),scale:rnd(.92,1.04)};if(Math.random()<.4)sp.pack=pick([0x3f4650,0x7a5a3c,0x8a2b3b]);return sp}
+const NPCK=[
+  ()=>({skin:pick(SK),top:0x1d2a4a,sleeve:0x1d2a4a,tie:0x8a2b2b,pants:0x2a2d36,hair:0x15151a,pack:pick([0x2f6fd0,0xd0402f,0x2a2a2a]),scale:rnd(.86,.92)}),
+  ()=>({skin:0xd9a07a,top:pick([0x8a7a5a,0x7a5a6a,0x5a6a7a]),vest:0x4a3a2a,pants:0x4a4a4a,hair:0xd8d8d4,perm:Math.random()<.5,belly:true,shoe:0x3a2a1a,scale:rnd(.86,.9)}),
+  ()=>({skin:pick(SK),top:0x2a2f3a,sleeve:0x2a2f3a,tie:pick([0x8a2b2b,0x2b4a8a,0x3a6a3a]),pants:0x2a2f3a,hair:0x15151a,glasses:Math.random()<.4,belt:0x111111,scale:rnd(1,1.05)})];
+function npcSpec(){const r=Math.random();if(r<.6)return pick(NPCK)();const sp={skin:pick(SK),top:pick([0x8fa3b8,0xc9b79a,0x7d8f7a,0xb58a8a,0x5f6f8f,0xd0d3d6]),pants:pick([0x2f3640,0x4a4338,0x39424e]),hair:pick([0x1c1c1c,0x3a2a1c,0x6a6a6a]),scale:rnd(.92,1.04)};if(Math.random()<.4)sp.pack=pick([0x3f4650,0x7a5a3c,0x8a2b3b]);return sp}
 const LOOKS=[
   {name:'폰좀비',kind:'zombie',w:.6,h:'block',desc:'멀리서 휴대폰을 던진다. 막거나 공격으로 쳐낼 수 있다. 붙으면 폰으로 내려찍는다',spec:()=>({skin:0xc3c9b0,top:pick([0x58657a,0x58657a,0x4d5a6b,0x5d4a78]),pants:0x33373f,hood:true,weapon:'phone',scale:rnd(.96,1.04)})},
   {name:'취객',kind:'zombie',w:.4,h:'drunk',desc:'멀리서 소주병을 던진다. 막거나 공격으로 쳐낼 수 있다. 붙으면 병으로 내려찍는다',spec:()=>({skin:0xe8957a,top:0xdfe3e6,pants:0x2d3138,hair:0x1c1c1c,tie:0x8a2b2b,weapon:'bottle',scale:rnd(.98,1.06)})},
@@ -537,7 +544,10 @@ const LOOKS=[
   {name:'확성기 전도사',kind:'brawler',w:0,boss:true,bk:'cult',ring:0xff8a00,desc:'보스. 빨간 모자에 빨간 긴 코트. 확성기 고함으로 주변을 밀쳐내고 폰좀비를 불러낸다',spec:()=>({skin:0xd9b08c,top:0xc0282d,sleeve:0xc0282d,coat:0xc0282d,pants:0x1c1c20,shoe:0x0e0e10,hair:0xb9b9b4,bucket:0xa8222a,weapon:'mega',angry:true,scale:1.32})},
   {name:'댄싱퀸',kind:'brawler',w:0,boss:true,bk:'queen',ring:0xff8a00,desc:'보스. 긴 검은 포니테일에 검은 옷, 은색 벨트. 쉬지 않고 돌진, 휘두르기, 점프를 섞어 몰아친다',spec:()=>({skin:0xe6bfa3,top:0x24242c,sleeve:0x24242c,pants:0x0e0e12,shoe:0x08080a,hair:0x15151a,ponytail:true,belt:0xc9c9d0,scale:1.3})},
   {name:'회장 (빌런 연합 두목)',kind:'brawler',w:0,boss:true,bk:'chair',ring:0xffd23a,desc:'최종 보스. 뚱뚱한 공익근무요원 1호는 분장이었다. 마스크와 옷을 벗으면 근육질 맨손 격투가. 주먹 연타, 훅, 밀치기, 돌진, 점프로 몰아친다. 쓰러뜨리면 진짜 흑막이 드러난다',spec:()=>({skin:0xc98a5e,top:0xc98a5e,sleeve:0xc98a5e,bare:true,pants:0x4a5730,shoe:0x15171a,hair:0x15151a,belt:0x2a2d22,camoLeg:true,muscle:true,angry:true,scale:1.32})},
-  {name:'시민',kind:'npc',w:0,desc:'일반 승객. 싸움이 나면 도망가고, 때리면 악명이 오른다',spec:npcSpec},
+  {name:'시민',kind:'npc',w:0,desc:'일반 승객. 싸움이 나면 도망가고, 때리면 악명이 오른다',spec:()=>{let s;do{s=npcSpec()}while(s.tie||s.vest);return s}},
+  {name:'교복 학생',kind:'npc',w:0,desc:'시민. 교복에 넥타이, 큰 책가방. 싸움이 나면 도망간다',spec:NPCK[0]},
+  {name:'어르신',kind:'npc',w:0,desc:'시민. 흰머리에 조끼 차림. 천천히 다니고, 싸움이 나면 몸을 피한다',spec:NPCK[1]},
+  {name:'출근길 직장인',kind:'npc',w:0,desc:'시민. 정장에 넥타이. 바쁘게 오가다 싸움이 나면 도망간다',spec:NPCK[2]},
   {name:'공익근무요원 (1호)',kind:'npc',w:0,ring:0x4aa8ff,desc:'동료. 첫 번째 보스에게 붙잡혀 있다가 구출하면 합류. 통통한 체형에 둥근 안경. 주인공을 따라다니며 주먹으로 싸우고, 주인공 레벨이 오르면 조금씩 강해진다',spec:()=>Object.assign({},ALLYSPEC[0])},
   {name:'공익근무요원 (2호)',kind:'npc',w:0,ring:0x4aa8ff,desc:'동료. 세 번째 보스에게 붙잡혀 있다가 구출하면 합류. 키 크고 마른 체형에 네모 안경. 1호와 함께 좌우에서 싸운다',spec:()=>Object.assign({},ALLYSPEC[1])}];
 function pickLook(kind){const c=LOOKS.filter(l=>l.kind===kind);let r=Math.random()*c.reduce((a,l)=>a+l.w,0);for(const l of c){r-=l.w;if(r<=0)return l}return c[0]}
@@ -999,7 +1009,7 @@ function heroSpec(){const s=Object.assign({},HERO),e=P.eq||{},h=e.hat,v=e.vest,s
   if(v&&v.b===1){s.top=0xc8f03a;s.neon=1}else if(v&&v.b===2){s.top=0x2a2f24;s.armor=1}else if(v&&v.b===3){s.top=0x1e2a1a;s.armor=1}else if(v&&v.b===4){s.top=0xe9e2cf;s.robe=1}
   if(sh)s.shoe=[0x0c0d10,0x2f86e0,0x6b4a2c,0xd9302c,0xe9ecef][sh.b];if(sh&&(sh.b===1||sh.b===3))s.sole=1;
   if(a&&a.b===0)s.card=1;if(a&&a.b===1)s.beads=1;if(a&&a.b===2)s.gl=0x0b0b0d;if(a&&a.b===3){s.card=1;s.cardc=0xe3b75c}if(a&&a.b===4)s.norigae=1;
-  if(d){s.dc=DCOL[d.b][0];s.db=DCOL[d.b][1]}return s}
+  if(d){s.dc=DCOL[d.b][0];s.db=DCOL[d.b][1]}const au=[];for(const k in e){const q=e[k];if(q&&q.g>=3)au.push([k,q.g])}if(au.length)s.aura=au;return s}
 function rebuildHero(){const sp=heroSpec(),key=JSON.stringify(sp);if(key===P.lookKey)return;P.lookKey=key;const old=P.rig,nr=makeRig(sp);nr.root.position.copy(old.root.position);nr.root.rotation.copy(old.root.rotation);scene.add(nr.root);scene.remove(old.root);P.rig=nr;P.anim='';}
 const GSK='danso3d-gear',PUB=/github\.io$/.test(location.hostname)||location.protocol==='file:';let GS=null,gsT=0,sbc=null,sbUser=null;if(!PUB)try{GS=JSON.parse(localStorage.getItem(GSK)||'null')}catch(e){}
 function gearPack(){return{v:1,t:Date.now(),eq:P.eq,gear:P.gear,mat:P.mat,gid}}
@@ -1326,7 +1336,7 @@ function tick(raw){
     if(G.finalWait&&G.state==='play'&&DQ.length===0&&dT<=0)finalReveal();
     if(G.rv&&G.state==='play')rvTick(dt);
     if(G.aiWait&&G.state==='play'&&DQ.length===0&&dT<=0)robotStart();
-    if(G.state==='play'&&!G.trans)robotTick(dt);updHaz(dt);for(let i=CORP.length-1;i>=0;i--){const c=CORP[i],r=c.n.rig.root;c.t+=raw;const k=Math.min(1,c.t*3);r.rotation.x=-PI/2*k;r.position.y=.15*k-(c.t>4?(c.t-4)*.6:0);if(c.t>5){scene.remove(r);CORP.splice(i,1)}}if(marks.visible||tmarks.visible){const k=.65+.35*Math.sin(G.t*6);for(const m of GLW)m.material.opacity=m.userData.op*k}
+    if(G.state==='play'&&!G.trans)robotTick(dt);updHaz(dt);if(P.rig&&P.rig.root.userData.aura)for(const a of P.rig.root.userData.aura){const u=a.userData;if(u.orb){const t=G.t*u.sp+u.ph;a.position.set(u.c[0]+Math.cos(t)*u.r,u.c[1]+Math.sin(t*1.3)*u.r*.6,u.c[2]+Math.sin(t)*u.r)}else{const k=.8+.25*Math.sin(G.t*3.2+u.ph);a.scale.setScalar(u.sc*k);a.material.opacity=u.o*(.7+.3*k)}}for(let i=CORP.length-1;i>=0;i--){const c=CORP[i],r=c.n.rig.root;c.t+=raw;const k=Math.min(1,c.t*3);r.rotation.x=-PI/2*k;r.position.y=.15*k-(c.t>4?(c.t-4)*.6:0);if(c.t>5){scene.remove(r);CORP.splice(i,1)}}if(marks.visible||tmarks.visible){const k=.65+.35*Math.sin(G.t*6);for(const m of GLW)m.material.opacity=m.userData.op*k}
     if(G.infWait&&G.state==='play'&&DQ.length===0&&dT<=0)infStart();
     if(G.inf&&G.state==='play'&&!P.dead&&G.zone==='plat')infTick(dt);
     if(G.rally>0&&G.zone==='plat'&&G.phase==='fight'&&!P.dead){G.rT-=dt;if(G.rT<=0&&enemies.filter(e=>e.st!=='dead').length<13){G.rT=.45;const sd=G.rally%2,e=mkEnemy(G.rally%3?'zombie':'brawler',sd?1.4:ZX-1.4,rnd(-ZZ+1.5,ZZ-1.5));e.awake=true;e.max=e.hp=Math.round(e.hp*.4);G.rally--;const m=(G.ms||[])[0];if(m&&!m.done){m.text='빌런 연합 총동원령 · 남은 증원 '+G.rally+'명';drawMis()}}}
