@@ -1045,7 +1045,7 @@ const ITEMS={
 const GR=[{n:'일반',c:0xe8ece9,m:1},{n:'고급',c:0x5fe08a,m:1.35},{n:'희귀',c:0x4aa8ff,m:1.75},{n:'영웅',c:0xb07cff,m:2.2},{n:'전설',c:0xffd23a,m:2.8}];
 const SLOTS=[['danso','단소'],['glove','장갑'],['hat','모자'],['vest','조끼'],['shoe','신발'],['acc','장신구']];
 const GB={danso:[{n:'대나무 단소',atk:.06},{n:'흑단 단소',atk:.07,aspd:.02},{n:'강철 단소',atk:.07,aspd:.02,gb:1,t:'기동대 방패를 무시'},{n:'청옥 단소',atk:.07,ki:.1,aspd:.02},{n:'국악원 명품 단소',atk:.08,aspd:.025,sp:1,t:'필살기 피해 증가'},{n:'명인의 단소',atk:.09,aspd:.018,sp:1,note:1,t:'기본 공격 때 확률로 음파(♪) 발사 · +0에서 5%, 강화마다 +1%p (+10에서 15%) · 단소 피해의 35% · 관통'}],
-  hat:[{n:'하늘색 캡',hp:10},{n:'공사장 안전모',hp:12},{n:'등산모',hp:10,def:8},{n:'기관사 모자',hp:12,spd:.03},{n:'명인의 백학 모자',hp:16,def:9,noto:.05}],
+  hat:[{n:'하늘색 캡',hp:10},{n:'공사장 안전모',hp:8,def:5},{n:'등산모',hp:10,def:8},{n:'기관사 모자',hp:12,spd:.03},{n:'명인의 백학 모자',hp:16,def:9,noto:.05}],
   vest:[{n:'남색 조끼',def:10},{n:'공사장 형광 조끼',def:9,noto:.1},{n:'등산 조끼',def:9,bullet:.1},{n:'기관사 제복 조끼',def:10,bullet:.08,hp:8},{n:'명인의 도포',def:12,ki:.09,hp:10}],
   shoe:[{n:'구두',spd:.03,hp:5,def:2},{n:'공사장 안전화',spd:.05,hp:6,def:3},{n:'등산화',spd:.035,hp:7,def:4,firm:1,t:'맞아도 덜 밀려남'},{n:'기관사 구두',spd:.06,hp:8,def:4,aspd:.024},{n:'명인의 축지 고무신',spd:.065,hp:11,def:5,aspd:.024,firm:1,t:'맞아도 덜 밀려남'}],
   glove:[{n:'면장갑',aspd:.044,hp:5},{n:'공사장 목장갑',aspd:.044,hp:6},{n:'등산 장갑',aspd:.044,hp:7,parry:1,t:'패링 판정 시간 증가'},{n:'기관사 흰 장갑',aspd:.044,hp:8,parry:1,t:'패링 판정 시간 증가'},{n:'명인의 비단 장갑',aspd:.044,hp:12,parry:1,t:'패링 판정 시간 증가'}],
@@ -1077,7 +1077,7 @@ function gearMesh(sl,b){const g=new T.Group();
     else if(b===1){for(let i=0;i<16;i++){const a=i/16*PI*2;A(gSph(.018),0x4cc27a,cos(a)*.085,sin(a)*.085,0,0,0,false)}A(gSph(.026),0xd9302c,0,-.11,0,0,0,false)}
     else{for(const sd of[1,-1])A(gBox(.075,.045,.012),0x3a8ee8,sd*.045,0,0);A(gBox(.03,.01,.012),0x15171a,0,.01,0,0,0,false);for(const sd of[1,-1])A(gBox(.008,.008,.12),0x15171a,sd*.082,.01,-.06,0,0,false)}}
   g.scale.setScalar(1.6);return g}
-const DCOL=[[0xdcae52,0x17140f],[0x2b1e16,0xc9a24a],[0xb8bec4,0x3a3f46],[0x3fa37a,0xf0f0e0],[0xf7f6f2,0xb8bec4],[0xfbfaf5,0xffd23a]];
+const DCOL=[[0xdcae52,0x17140f],[0x2b1e16,0xc9a24a],[0xe4e8ec,0x8c939a],[0x3fa37a,0xf0f0e0],[0xf7f6f2,0xb8bec4],[0xfbfaf5,0xffd23a]];
 const ICON={};
 function mkIcons(){try{const r=new T.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r.setSize(96,96,false);r.outputEncoding=T.sRGBEncoding;r.setClearColor(0,0);
   const sc=new T.Scene();sc.add(new T.HemisphereLight(0xffffff,0x2a3530,.85));const dl=new T.DirectionalLight(0xffffff,1.05);dl.position.set(2.5,4,3.5);sc.add(dl);const c=new T.PerspectiveCamera(30,1,.01,10);c.position.set(0,.35,1.15);c.lookAt(0,0,0);
