@@ -1158,11 +1158,11 @@ function duelClick(e){const b=e.target.closest('[data-du]');if(!b)return;const k
   if(k==='x'){duelLeave();duelUI('');try{history.replaceState(null,'',location.pathname)}catch(e){}}
   else if(k==='share'){const L=duelLink(DU.code),t=duelName()+'님이 지하철 히어로 1:1 대결을 신청했어요! (5판 3선승) 링크를 눌러 수락하세요 ⚔';if(navigator.share)navigator.share({title:'지하철 히어로 대결 신청',text:t,url:L}).catch(()=>{});else duelCopy(L)}
   else if(k==='copy')duelCopy(duelLink(DU.code));
-  else if(k==='acc'){duelSend({t:'acc',n:duelName(),spec:heroSpec()});duelUI('<h3>⚔ 대결 수락!</h3><p>곧 시작합니다…</p>')}
+  else if(k==='acc'){duelSend({t:'acc',n:duelName(),spec:heroSpec(),r:DU.myR});duelUI('<h3>⚔ 대결 수락!</h3><p>곧 시작합니다…</p>')}
   else if(k==='no'){duelSend({t:'no'});duelLeave();duelUI('');try{history.replaceState(null,'',location.pathname)}catch(e){}}
   else if(k==='end')duelExit()}
 function duelCopy(L){const s=$('dust');try{navigator.clipboard.writeText(L).then(()=>{if(s)s.textContent='링크를 복사했어요. 친구에게 붙여넣어 보내 주세요.'}).catch(()=>{if(s)s.textContent='위 링크를 길게 눌러 복사해 주세요.'})}catch(e){if(s)s.textContent='위 링크를 길게 눌러 복사해 주세요.'}}
-function duelJoin(c,role){duelLeave();DU.code=c;DU.role=role;DU.on=false;DU.got=0;DU.sc=[0,0];DU.rnd=0;
+function duelJoin(c,role){duelLeave();DU.myR=1000;DU.oppR=1000;duelMyR();DU.code=c;DU.role=role;DU.on=false;DU.got=0;DU.sc=[0,0];DU.rnd=0;
   const ch=sbc.channel('duel-'+c,{config:{broadcast:{self:false},presence:{key:role+'-'+Math.random().toString(36).slice(2,6)}}});DU.ch=ch;
   ch.on('broadcast',{event:'du'},({payload})=>{try{duelMsg(payload||{})}catch(e){}});
   ch.on('presence',{event:'leave'},({leftPresences})=>{if(DU.on&&(leftPresences||[]).some(p=>p.r&&p.r!==DU.role)){clearTimeout(DU.dcT);banner('상대 연결이 끊겼어요','8초 안에 돌아오지 않으면 내 승리로 끝나요',3);DU.dcT=setTimeout(()=>{if(DU.on)duelEnd(true,'상대가 대결에서 나갔어요')},8000)}});ch.on('presence',{event:'join'},({newPresences})=>{if(DU.on&&DU.dcT&&(newPresences||[]).some(p=>p.r&&p.r!==DU.role)){clearTimeout(DU.dcT);DU.dcT=0;banner('상대가 다시 연결됐어요','대결을 계속합니다',2)}});
@@ -1171,8 +1171,8 @@ function duelLeave(){if(DU.ch){try{sbc.removeChannel(DU.ch)}catch(e){}}DU.ch=nul
 function duelMsg(m){
   if(m.t==='hi'&&DU.role==='host'&&!DU.on){duelSend({t:'inv',n:duelName()});const s=$('dust');if(s)s.textContent=duEsc(m.n||'친구')+'님이 링크를 열었어요. 수락을 기다리는 중…'}
   else if(m.t==='inv'&&DU.role==='guest'&&!DU.on){DU.got=1;duelUI('<h3>⚔ 대결 신청이 왔어요</h3><p><b>'+duEsc(m.n)+'</b>님이 1:1 대결을 신청했어요.<br>5판 3선승제 · 각자 자기 장비로 싸워요.</p><button class="pri" data-du="acc">수락</button><button data-du="no">거절</button>')}
-  else if(m.t==='acc'&&DU.role==='host'&&!DU.on){duelSend({t:'go',n:duelName(),spec:heroSpec()});duelStart(m.n,m.spec)}
-  else if(m.t==='go'&&DU.role==='guest'&&!DU.on){duelStart(m.n,m.spec)}
+  else if(m.t==='acc'&&DU.role==='host'&&!DU.on){DU.oppR=+m.r||1000;duelSend({t:'go',n:duelName(),spec:heroSpec(),r:DU.myR});duelStart(m.n,m.spec)}
+  else if(m.t==='go'&&DU.role==='guest'&&!DU.on){DU.oppR=+m.r||1000;duelStart(m.n,m.spec)}
   else if(m.t==='no'&&DU.role==='host'&&!DU.on){duelUI('<h3>대결 거절</h3><p>친구가 대결을 거절했어요.</p><button data-du="x">닫기</button>');duelLeave()}
   else if(!DU.on||!O)return;
   else if(m.t==='st'){O.tx=m.x;O.tz=m.z;O.ty=m.y;O.ta=m.a;if(m.an&&m.an!==O.anim){O.anim=m.an;O.animT=0}O.hp=m.hp;O.max=m.mx||O.max;O.guard=m.g}
@@ -1182,12 +1182,13 @@ function duelMsg(m){
   else if(m.t==='to'){duelRound(m.l===DU.role)}}
 function duelTag(t){const tex=ctex(512,96,(c,w,h)=>{c.font='800 44px "Noto Sans KR",sans-serif';const tw=Math.min(w-20,c.measureText(t).width+40);c.fillStyle='rgba(120,20,10,.85)';c.fillRect((w-tw)/2,10,tw,h-20);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(t,w/2,h/2+2)});const s=new T.Sprite(new T.SpriteMaterial({map:tex,transparent:true,depthTest:false}));s.scale.set(2.6,.49,1);s.position.y=2.55;s.renderOrder=8;return s}
 function duelSpawnPos(me){const left=(DU.role==='host')===me;return{x:ZX/2+(left?-5:5),z:0,a:left?PI/2:-PI/2}}
-function dRender(){const ol=$('rlist');ol.textContent='';const rows=dboard.filter(r=>r&&(r.win|0)+(r.loss|0)>0).sort((a,b)=>(b.win|0)-(a.win|0)||(a.loss|0)-(b.loss|0)).slice(0,10);
+function dRender(){const ol=$('rlist');ol.textContent='';const rows=dboard.filter(r=>r&&(r.win|0)+(r.loss|0)>0).sort((a,b)=>(b.rating|0)-(a.rating|0)||(b.win|0)-(a.win|0)).slice(0,10);
   if(!rows.length){const li=document.createElement('li');li.className='empty';li.textContent=PUB?'아직 대결 기록이 없어요. 친구에게 1:1 대결을 신청해 보세요.':'1:1 대결 랭킹은 공개 게임 링크에서 볼 수 있어요.';ol.appendChild(li)}
-  rows.forEach((r,i)=>{const li=document.createElement('li');if(sbUser&&r.uid===sbUser.id)li.className='me';const w=r.win|0,l=r.loss|0;for(const [c,t] of[['n',i+1],['nm',String(r.name||'').slice(0,10)],['st',w+'승 '+l+'패 · 승률 '+Math.round(w*100/Math.max(1,w+l))+'%'],['sc',w+'승']]){const sp=document.createElement('span');sp.className=c;sp.textContent=t;li.appendChild(sp)}ol.appendChild(li)});
-  $('rscope').textContent='카카오 로그인한 사람끼리 · 승리 수 순'}
+  rows.forEach((r,i)=>{const li=document.createElement('li');if(sbUser&&r.uid===sbUser.id)li.className='me';const w=r.win|0,l=r.loss|0;for(const [c,t] of[['n',i+1],['nm',String(r.name||'').slice(0,10)],['st',w+'승 '+l+'패 · 승률 '+Math.round(w*100/Math.max(1,w+l))+'%'],['sc',(r.rating==null?1000:r.rating)+'점']]){const sp=document.createElement('span');sp.className=c;sp.textContent=t;li.appendChild(sp)}ol.appendChild(li)});
+  $('rscope').textContent='이기면 점수↑ 지면 점수↓ · 시작 1000점'}
 document.getElementById('rtab').addEventListener('click',e=>{const b=e.target.closest('[data-rt]');if(!b)return;RT=b.dataset.rt;document.querySelectorAll('#rtab button').forEach(x=>x.classList.toggle('on',x===b));rRender()});
-async function duelRec(win){try{if(!sbc||!sbUser)return;const q=await sbc.from('duel3d').select('win,loss').eq('uid',sbUser.id).maybeSingle();if(q.error)return;const w=(q.data?q.data.win:0)+(win?1:0),l=(q.data?q.data.loss:0)+(win?0:1),row={name:kName().slice(0,10),win:w,loss:l,updated_at:new Date().toISOString()};if(q.data)await sbc.from('duel3d').update(row).eq('uid',sbUser.id);else await sbc.from('duel3d').insert(Object.assign({uid:sbUser.id},row));sbLoad().catch(()=>{})}catch(e){}}
+async function duelMyR(){try{if(!sbc||!sbUser)return;const q=await sbc.from('duel3d').select('rating').eq('uid',sbUser.id).maybeSingle();if(q.data&&q.data.rating!=null)DU.myR=q.data.rating}catch(e){}}
+async function duelRec(win){try{if(!sbc||!sbUser)return;const q=await sbc.from('duel3d').select('win,loss,rating').eq('uid',sbUser.id).maybeSingle();if(q.error)return;const my=q.data&&q.data.rating!=null?q.data.rating:1000,op=DU.oppR||1000,ex=1/(1+Math.pow(10,(op-my)/400));let dl=Math.round(32*((win?1:0)-ex));if(win)dl=Math.max(1,dl);else dl=Math.min(-1,dl);const nr=Math.max(0,my+dl),w=(q.data?q.data.win:0)+(win?1:0),l=(q.data?q.data.loss:0)+(win?0:1),row={name:kName().slice(0,10),win:w,loss:l,rating:nr,updated_at:new Date().toISOString()};const res=q.data?await sbc.from('duel3d').update(row).eq('uid',sbUser.id):await sbc.from('duel3d').insert(Object.assign({uid:sbUser.id},row));const el=$('durt');if(el)el.innerHTML=res&&res.error?'대결 점수 저장 실패':'대결 점수 <b>'+my+' → '+nr+'</b> <b style="color:'+(dl>0?'#5fe08a':'#ff8a75')+'">('+(dl>0?'+':'')+dl+')</b>';DU.myR=nr;sbLoad().catch(()=>{})}catch(e){}}
 function duelStart(n,spec){DU.on=true;DU.recd=0;DU.opp=duEsc(n)||'상대';DU.sc=[0,0];DU.rnd=0;DU.rp=false;duelUI('');try{history.replaceState(null,'',location.pathname)}catch(e){}
   newGame();G.duelMode=true;clearEnemies();clearItems();sayClear();G.ms=[];drawMis&&drawMis();G.phase='duel';G.ptr=null;PTR.visible=false;G.bossName='';
   DU.npcs=npcs.splice(0);for(const q of DU.npcs)scene.remove(q.rig.root);for(const a of allies)if(a&&a.rig)a.rig.root.visible=false;
@@ -1201,7 +1202,7 @@ function duelRound(meLost){if(DU.rp||!DU.on)return;DU.rp=true;DU.sc[meLost?1:0]+
   banner(meLost?'라운드 패배…':'라운드 승리!','나 '+a+' : '+b+' '+DU.opp,2.4);
   if(a>=3||b>=3)setTimeout(()=>duelEnd(a>=3),2600);else setTimeout(()=>{if(DU.on)duelReset(false)},3000)}
 function duelEnd(win,why){if(!DU.on&&!why)return;clearTimeout(DU.dcT);if(DU.on&&!DU.recd){DU.recd=1;duelRec(win)}DU.on=false;const [a,b]=DU.sc;duelLeave();
-  duelUI('<h3>'+(win?'🏆 대결 승리!':'대결 패배')+'</h3><p>'+(why?why+'<br>':'')+'최종 스코어 <b>나 '+a+' : '+b+' '+duEsc(DU.opp)+'</b></p><button class="pri" data-du="end">나가기</button>');G.duelPause=true}
+  duelUI('<h3>'+(win?'🏆 대결 승리!':'대결 패배')+'</h3><p>'+(why?why+'<br>':'')+'최종 스코어 <b>나 '+a+' : '+b+' '+duEsc(DU.opp)+'</b></p><p id="durt">'+(sbUser?'대결 점수 계산 중…':'카카오 로그인하면 대결 점수가 랭킹에 올라가요')+'</p><button class="pri" data-du="end">나가기</button>');G.duelPause=true}
 function duelExit(){duelLeave();DU.on=false;duelUI('');if(O){scene.remove(O.rig.root);O=null}G.duelMode=false;G.duelPause=false;if(DU.npcs){for(const q of DU.npcs){scene.add(q.rig.root);npcs.push(q)}DU.npcs=null}
   G.state='title';$('ovt').textContent='지하철 히어로';$('ovs').textContent='건대입구역 승강장을 자유롭게 돌아다니며 빌런을 정리하세요';$('ovb').textContent='눌러서 시작';$('ovb').hidden=false;$('ov').hidden=false}
 function duelTick(dt){if(!O)return;if(DU.pause>0){DU.pause-=dt;P.inv=Math.max(P.inv,.2)}
@@ -1677,7 +1678,7 @@ function rRender(){
 }
 const KAKAO_REST='9eaac1523d5582dca4e1e91efdf9dce1',SB_URL='https://ydukicaupmqwgcktkgvc.supabase.co',SB_KEY='sb_publishable_pDDOWXyNQvukpAj2hutYXA_G-eeEDLR';let rsb=false;
 function sbH(j){const h={apikey:SB_KEY};if(j){h['Content-Type']='application/json';h.Prefer='return=minimal'}return h}
-async function sbLoad(){const r=await fetch(SB_URL+'/rest/v1/scores3d?select=name,score,station,lv,wave,created_at&order=score.desc,created_at.asc&limit=50',{headers:sbH()});if(!r.ok)throw{code:'http '+r.status};rboard=(await r.json()).map(x=>({name:x.name,score:x.score,station:x.station,lv:x.lv,wave:x.wave,at:Date.parse(x.created_at)||0}));try{const d=await fetch(SB_URL+'/rest/v1/duel3d?select=uid,name,win,loss&order=win.desc,loss.asc&limit=30',{headers:sbH()});if(d.ok)dboard=await d.json()}catch(e){}rRender()}
+async function sbLoad(){const r=await fetch(SB_URL+'/rest/v1/scores3d?select=name,score,station,lv,wave,created_at&order=score.desc,created_at.asc&limit=50',{headers:sbH()});if(!r.ok)throw{code:'http '+r.status};rboard=(await r.json()).map(x=>({name:x.name,score:x.score,station:x.station,lv:x.lv,wave:x.wave,at:Date.parse(x.created_at)||0}));try{const d=await fetch(SB_URL+'/rest/v1/duel3d?select=uid,name,win,loss,rating&order=rating.desc,win.desc&limit=30',{headers:sbH()});if(d.ok)dboard=await d.json()}catch(e){}rRender()}
 async function rInit(){
   const c=window.claude;let ru=null;if(PUB){try{await sbLoad();rsb=true;rlocal=false;setInterval(()=>{sbLoad().catch(()=>{})},30000)}catch(e){rlocal=true;rboard=rLoad();rRender();rmsg('공유 랭킹에 연결할 수 없어 이 기기의 기록만 보여줍니다')}return}
   if(c&&typeof c.use==='function'){try{[rdb,ru]=await Promise.all([c.use('db'),c.use('user')])}catch(e){rdb=null}try{if(ru)Promise.resolve(ru.isOwner()).then(v=>{if(v)$('galb').hidden=false}).catch(()=>{})}catch(e){}}
