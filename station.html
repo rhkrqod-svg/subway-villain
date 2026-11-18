@@ -287,7 +287,7 @@ function makeRig(s){
     const C=()=>geo('lgC',()=>new T.TorusGeometry(.015,.005,4,10,PI*1.5));
     {const c=part(chest,C(),lg,.105,.1,.138,false);c.rotation.z=PI/4;part(chest,gBox(.03,.007,.004),lg,.135,.094,.132,false)}
     for(const dx of[-.02,.02]){const c=part(chest,C(),lg,dx,.2,-.128,false);c.rotation.set(0,PI,PI/4)}
-    for(const z of[.2,.27,.34,.41])part(wp,gSph(.008),dark,0,.019,z,false);}
+    if(s.weapon==='danso')for(const z of[.2,.27,.34,.41])part(wp,gSph(.008),dark,0,.019,z,false);}
   if(s.scooter!==undefined){const sm=mat('scot',s.scooter),dk2=mat('scod',0x1b1d22);part(root,gBox(.17,.045,.8),sm,0,.1,.06);for(const z of[-.3,.42])part(root,geo('scw',()=>{const g=new T.CylinderGeometry(.08,.08,.06,12);g.rotateZ(PI/2);return g}),dk2,0,.08,z);part(root,gBox(.04,1.02,.04),dk2,0,.6,.44);part(root,gBox(.5,.04,.04),dk2,0,1.1,.44)}
   if(s.carrier!==undefined){const cm=mat('carr',s.carrier);part(J.lHand,gBox(.44,.62,.26),cm,0,-.37,0);part(J.lHand,gBox(.46,.05,.27),mat('carr2',0x2a2d33),0,-.25,0,false);part(J.lHand,gBox(.18,.04,.05),dark,0,-.04,0,false);for(const x of[-.16,.16])part(J.lHand,gSph(.045),dark,x,-.7,.09,false)}
   if(s.headtie!==undefined){part(head,geo('htie',()=>{const g=new T.TorusGeometry(.158,.026,6,18);g.rotateX(PI/2);return g}),mat('htie',s.headtie),0,.22,0,false);part(head,gBox(.03,.14,.03),mat('htie',s.headtie),.05,.2,-.17,false)}
