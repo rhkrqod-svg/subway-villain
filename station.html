@@ -1153,7 +1153,7 @@ function duelHost(){if(!PUB||!sbc){duelUI('<h3>⚔ 친구와 1:1 대결</h3><p>�
   const c=Math.random().toString(36).slice(2,8).toUpperCase();duelJoin(c,'host');const L=duelLink(c);
   duelUI('<h3>⚔ 친구에게 대결 신청</h3><p>아래 링크를 카카오톡 등으로 친구에게 보내세요.<br>친구가 링크를 열고 <b>수락</b>하면 바로 1:1 대결이 시작돼요.<br><b>5판 3선승제</b> · 각자 자기 장비로 싸워요.</p><span class="lk">'+L+'</span><button class="pri" data-du="share">📨 대결 신청 보내기</button><button data-du="copy">링크 복사</button><p id="dust">친구를 기다리는 중… (이 창을 닫지 마세요)</p><button data-du="x">취소</button>')}
 function duelGuest(c){if(!sbc)return;duelJoin(c,'guest');duelUI('<h3>⚔ 대결 신청 확인 중…</h3><p>신청한 친구를 찾고 있어요.</p><button data-du="x">닫기</button>');
-  setTimeout(()=>{if(!DU.got&&!DU.on&&DU.role==='guest'&&DU.ch)duelUI('<h3>대결 신청을 찾을 수 없어요</h3><p>신청한 친구가 창을 닫았거나 이미 끝난 대결이에요.<br>친구에게 새 링크를 보내 달라고 해 주세요.</p><button data-du="x">닫기</button>')},20000)}
+  setTimeout(()=>{if(!DU.got&&!DU.on&&DU.role==='guest'&&DU.ch)duelUI('<h3>대결 신청을 찾을 수 없어요</h3><p>신청한 친구가 창을 닫았거나 이미 끝난 대결이에요.<br>친구에게 새 링크를 보내 달라고 해 주세요.</p><button data-du="x">닫기</button>')},30000)}
 function duelClick(e){const b=e.target.closest('[data-du]');if(!b)return;const k=b.dataset.du;
   if(k==='x'){duelLeave();duelUI('');try{history.replaceState(null,'',location.pathname)}catch(e){}}
   else if(k==='share'){const L=duelLink(DU.code),t=duelName()+'님이 지하철 히어로 1:1 대결을 신청했어요! (5판 3선승) 링크를 눌러 수락하세요 ⚔';if(navigator.share)navigator.share({title:'지하철 히어로 대결 신청',text:t,url:L}).catch(()=>{});else duelCopy(L)}
