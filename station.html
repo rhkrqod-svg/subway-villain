@@ -1463,7 +1463,7 @@ function updPlayer(dt){tipTick(dt);
   }
   const pf=fwd(P.ang);
   if(P.dashT>0){P.dashT-=dt;P.vx=pf[0]*9.5;P.vz=pf[1]*9.5}
-  else if(P.atk>0&&P.atk!==5){const v=P.atk===4?(P.atkE<.16?8.5:.6):P.atkE<AT[P.atk].h?2.6:.3;P.vx=pf[0]*v;P.vz=pf[1]*v}
+  else if(P.atk>0&&P.atk!==5){const v=P.atk===4?(P.atkE<.16?8.5:.6):P.atkE<AT[P.atk].h?2.6:.3+2.3*Math.exp(-(P.atkE-AT[P.atk].h)*18);P.vx=pf[0]*v;P.vz=pf[1]*v}
   else if(P.hurtT>0||P.dead){const k=Math.pow(.02,dt);P.vx*=k;P.vz*=k}
   else if(P.guard){const k=Math.pow(.001,dt);P.vx*=k;P.vz*=k}
   else{const sv=(P.spdT>0?5.9:4.2)*(1+(P.S.spd||0))*(P.slowT>0?.5:1);if(P.slipT>0){P.vx+=(mx*sv*1.3-P.vx)*.04;P.vz+=(mz*sv*1.3-P.vz)*.04}else{P.vx=mx*sv;P.vz=mz*sv}if(mang!==null)P.ang=angTo(P.ang,mang,1-Math.exp(-14*dt))}
@@ -1590,10 +1590,11 @@ function updEnemy(e,dt,busyN){
 }
 
 /* ---------- frame ---------- */
+function heroPose(){const p=poseOf(P,G);if(P.atk>0&&P.atk!==5&&AT[P.atk]&&!(P.cast>0)&&!P.dead){const A=AT[P.atk],sp=aspd();p.rate=(p.rate||16)*clamp(sp/.4,.55,1.4);if(P.atkE<A.h-.03)p.rate=Math.min(p.rate,2.4*sp/Math.max(.06,A.h));const u=clamp((P.atkE-A.h)/Math.max(.05,A.d-A.h),0,1);if(u>0){const a0=P.anim,t0=P.animT;P.anim='idle';const q=poseOf(P,G);P.anim=a0;P.animT=t0;const w=u*u*.55;for(const n in P.rig.J){const a=p[n]||[0,0,0],b=q[n]||[0,0,0];p[n]=[(a[0]||0)+((b[0]||0)-(a[0]||0))*w,(a[1]||0)+((b[1]||0)-(a[1]||0))*w,(a[2]||0)+((b[2]||0)-(a[2]||0))*w]}p.y=(p.y||0)+((q.y||0)-(p.y||0))*w;p.lean=(p.lean||0)+((q.lean||0)-(p.lean||0))*w;p.rate*=1-.35*u}}return p}
 function syncRig(c,dt){
   const r=c.rig;r.root.position.set(c.x,c.y,c.z);
   r.root.rotation.y=angTo(r.root.rotation.y,c.ang,1-Math.exp(-22*dt));
-  applyPose(r,poseOf(c,G),dt);
+  applyPose(r,c===P?heroPose():poseOf(c,G),dt);
 }
 const camPos=new T.Vector3(0,2.4,0),camTgt=new T.Vector3(4,1.3,0);let last=performance.now();
 const ROTQ=window.matchMedia?matchMedia('(orientation:portrait) and (pointer:coarse)'):null;
